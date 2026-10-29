@@ -6,6 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 J = json.load(open(ROOT / "data" / "processed" / "hasil_validasi.json"))
+HD = json.load(open(ROOT / "data" / "processed" / "hasil_desain.json"))
 OUT = ROOT / "figures" / "diagram-alur-hidrologi.html"
 
 def idfmt(x, d=3):
@@ -113,7 +114,7 @@ def chart_chi():
         p.append(f'<rect x="{lx}" y="{ly-9}" width="14" height="10" rx="2" fill="{col}" stroke="#94a3b8" stroke-width="0.6"/>')
         p.append(f'<text x="{lx+20}" y="{ly}" class="leg">{lab}</text>')
         ly += 18
-    p.append(f'<text x="{ml+8}" y="{H-16}" class="cap">Kelas dibatasi R2, R5, R10, R25 · peluang 0,50 / 0,20 / 0,10 / 0,06 / 0,04 · &#967;&#178; = {idfmt(c["chi2"],3)} &#8804; {idfmt(c["crit"],3)} (df = {c["df"]}) &#8594; LOLOS</text>')
+    p.append(f'<text x="{ml+8}" y="{H-16}" class="cap">Kelas dibatasi R2, R5, R10, R25 · peluang 0,50 / 0,20 / 0,10 / 0,06 / 0,14 (jumlah 1,00) · &#967;&#178; = {idfmt(c["chi2"],3)} &#8804; {idfmt(c["crit"],3)} (df = {c["df"]}) &#8594; LOLOS</text>')
     p.append('</svg>')
     return "".join(p)
 
@@ -162,7 +163,8 @@ for name, P in [("Normal", 2), ("Gumbel", 2), ("LP3", 3)]:
                  f'<td>{idfmt(c["crit"],3)}</td><td>{"LOLOS" if c["lolos"] else "GAGAL"}</td></tr>')
 
 t = J["t"]; k = J["kons"]; g = J["gumbel"]
-R24 = J["R24"]; I = J["I"]; Qr = J["Q"]; Va = Qr * 3600
+H = HD["hidrolika"]
+R24 = J["R24"]; I = H["I"]; Qr = H["Q"]; Va = HD["kolam"]["Va"]
 
 CSS = """
 :root{--bg:#f4f6fa;--card:#fff;--border:#e3e8f0;--ink:#1e293b;--muted:#64748b;--slate:#64748b;
@@ -390,9 +392,9 @@ HTML = f"""<!DOCTYPE html>
 <div><h2>Chi_Kuadrat</h2><p class="sub">Uji kecocokan (rumus [2.17]) — &#967;&#178; = &#931;(Oi&#8722;Ei)&#178;/Ei, dk = G&#8722;1&#8722;P</p></div>
 <span class="badge b-ok">LP3 TERPILIH</span></div>
 <div class="body-row"><div class="chips-zone">
-<div class="chips-label">Kelas &amp; frekuensi (batas R2, R5, R10, R25 · peluang 0,50/0,20/0,10/0,06/0,04)</div>
+<div class="chips-label">Kelas &amp; frekuensi (batas R2, R5, R10, R25 · peluang 0,50/0,20/0,10/0,06/0,14 = 1,00)</div>
 <div class="chips">
-<span class="chip mono">E = n·p = [7,0 · 2,8 · 1,4 · 0,84 · 0,56]</span>
+<span class="chip mono">E = n·p = [7,00 · 2,80 · 1,40 · 0,84 · 1,96]</span>
 <span class="chip mono">O = [9 · 2 · 2 · 0 · 1]</span>
 <span class="chip mono">&#967;&#178; hitung = <b>{idfmt(J['chi'][J['chosen']]['chi2'],3)}</b> (ketiga distribusi)</span>
 </div>
@@ -414,12 +416,12 @@ HTML = f"""<!DOCTYPE html>
 <div class="chips-label">Rantai perhitungan</div>
 <div class="chips">
 <span class="chip mono">R24 = XT(T=10, LP3) = <b>{idfmt(R24)} mm</b></span>
-<span class="chip mono">to = 0,0195·Lo^0,77/Ss^0,385 (Kirpich) = {idfmt(J['to'],2)} mnt</span>
-<span class="chip mono">V = (1/n)·Rh&#8310;&#8314;·&#8730;S (Manning) = {idfmt(J['Vch'],3)} m/s</span>
-<span class="chip mono">td = Ld/(60·V) = {idfmt(J['td'],2)} mnt</span>
-<span class="chip mono">tc = (to+td)/60 = <b>{idfmt(J['tc'],4)} jam</b></span>
+<span class="chip mono">to = 0,0195·(Lo/&#8730;S)^0,77 (Kirpich, atap) = {idfmt(H['to'],2)} mnt</span>
+<span class="chip mono">td = Ld/(60·v) = {idfmt(H['td'],2)} mnt</span>
+<span class="chip mono">tc = (to+td)/60 = <b>{idfmt(H['tc'],4)} jam</b></span>
 <span class="chip mono">I = (R24/24)·(24/tc)^&#8531; (Mononobe) = <b>{idfmt(I,1)} mm/jam</b></span>
-<span class="chip mono">Q = 0,278·C·I·A = 0,278·{idfmt(J['C'],2)}·{idfmt(I,1)}·{idfmt(J['A_km2'],4)} = <b>{idfmt(Qr,3)} m&#179;/dtk</b></span>
+<span class="chip mono">Q = 0,278·C·I·A = 0,278·{idfmt(H['C'],2)}·{idfmt(I,1)}·{idfmt(H['A_km2'],4)} = <b>{idfmt(Qr,3)} m&#179;/dtk</b> (envelope)</span>
+<span class="chip mono">D = {idfmt(H['Dkom'],0)} mm · v = {idfmt(H['v'],2)} m/dtk · kapasitas Manning {idfmt(H['kapasitas'],3)} m&#179;/dtk</span>
 <span class="chip mono">Va = Q·th = {idfmt(Qr,3)} × 3600 &#8776; <b>{idfmt(Va,0)} m&#179;</b> (th = 1 jam)</span>
 </div>
 </div></div>
@@ -440,13 +442,13 @@ HTML = f"""<!DOCTYPE html>
 <h3>Rangkaian keputusan akhir</h3>
 <div class="sum-row">
 <div class="sum sum-r"><b>R24 = {idfmt(R24,1)} mm</b><br>hujan rencana T = 10 th dari Log Pearson III (&#967;&#178; lolos, prioritas SNI 2415:2016)</div>
-<div class="sum sum-i"><b>I = {idfmt(I,1)} mm/jam</b><br>intensitas Mononobe pada tc = {idfmt(J['tc'],4)} jam (to {idfmt(J['to'],1)} mnt + td {idfmt(J['td'],1)} mnt)</div>
-<div class="sum sum-q"><b>Q = {idfmt(Qr,3)} m&#179;/dtk</b><br>debit rencana Rasional (C = {idfmt(J['C'],2)}, A = {idfmt(J['A_km2']*100,2)} ha) · Va &#8776; {idfmt(Va,0)} m&#179;</div>
+<div class="sum sum-i"><b>I = {idfmt(I,1)} mm/jam</b><br>intensitas Mononobe pada tc = {idfmt(H['tc'],4)} jam (to {idfmt(H['to'],2)} mnt + td {idfmt(H['td'],2)} mnt)</div>
+<div class="sum sum-q"><b>Q = {idfmt(Qr,3)} m&#179;/dtk</b><br>debit rencana Rasional (C = {idfmt(H['C'],2)}, A = {idfmt(H['A_km2']*100,2)} ha) · Va = {idfmt(Va,0)} m&#179;</div>
 </div>
 </div>
 
 <div class="note">
-<b>Catatan:</b> seluruh angka dibaca dari <span class="chip mono" style="display:inline">data/processed/hasil_validasi.json</span> (analisis2.py &#8594; hidrologi.db &#8594; xlsx BWSK). Parameter site pada tahap 8 (Lo, Ss, Ld, B, y, n Manning, C, A) masih asumsi placeholder — ganti dengan data lapangan. Nilai Q uji konsistensi pada Grafik 4 dihitung ulang dari deret S*&#7522;/Dy (field <i>kons.Q</i> di JSON tertimpa variabel debit — lihat chat).
+<b>Catatan:</b> seluruh angka dibaca dari <span class="chip mono" style="display:inline">data/processed/hasil_validasi.json</span> dan <span class="chip mono" style="display:inline">data/processed/hasil_desain.json</span> (analisis2.py &#8594; analisis_desain.py &#8594; hidrologi.db). Parameter site (Lo, S_atap, Ld, S_pipa, n Manning) masih asumsi — ganti dengan data lapangan. Field lama to/td/tc/I/Q (parameter Lo=200) dihapus (keputusan 4 REVISI.md); rantai desain memakai iterasi envelope (sheet Hidrolika_Pipa).
 </div>
 
 </div>

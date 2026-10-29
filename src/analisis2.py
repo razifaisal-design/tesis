@@ -115,7 +115,8 @@ for T in Ts:
     print(f"T={T:>3}  Normal={r['Normal']:9.3f}  Gumbel={r['Gumbel']:9.3f}  LP3={r['LP3']:9.3f} (K={r['K_lp3']})")
 
 # ---- 6. CHI-KUADRAT ----
-p = [0.50,0.20,0.10,0.06,0.04]
+# peluang kelas dibatasi R2/R5/R10/R25, menjumlah 1,00 (keputusan 5 REVISI.md)
+p = [0.50, 0.20, 0.10, 0.06, 0.14]
 E = [n*pi for pi in p]
 CHIC = {1:3.841, 2:5.991}
 chi = {}
@@ -130,9 +131,15 @@ for dist, P in [("Normal",2),("Gumbel",2),("LP3",3)]:
         else: O[4]+=1
     df = 5-1-P
     ch2 = sum((o-e)**2/e for o,e in zip(O,E))
+    # uji tambahan syarat E >= 5 (Cochran): kelas 2-5 digabung
+    Oe, Ee = [O[0], sum(O[1:])], [E[0], sum(E[1:])]
+    ch2e = sum((o-e)**2/e for o, e in zip(Oe, Ee))
     chi[dist] = dict(batas=[round(v,3) for v in b], O=O, E=[round(e,3) for e in E],
-                     chi2=round(ch2,4), df=df, crit=CHIC[df], lolos=ch2<=CHIC[df])
-    print(f"\n{dist}: batas={chi[dist]['batas']} O={O} chi2={ch2:.4f} df={df} kritik={CHIC[df]} -> {'LOLOS' if chi[dist]['lolos'] else 'GAGAL'}")
+                     chi2=round(ch2,4), df=df, crit=CHIC[df], lolos=ch2<=CHIC[df],
+                     e5=dict(O=Oe, E=[round(e,3) for e in Ee], chi2=round(ch2e,4),
+                             catatan="kelas 2-5 digabung agar E >= 5; uji tambahan tanpa dk"))
+    print(f"\n{dist}: batas={chi[dist]['batas']} O={O} E={[round(e,2) for e in E]} chi2={ch2:.4f} df={df} kritik={CHIC[df]} -> {'LOLOS' if chi[dist]['lolos'] else 'GAGAL'}")
+    print(f"   E>=5 (gabungan): O={Oe} E={Ee} chi2={ch2e:.4f}")
 # urut prioritas saat chi2 seri: LP3 (standar SNI 2415:2016, df lebih ketat) > Gumbel > Normal
 prio = ["LP3","Gumbel","Normal"]
 lolos = {d:v for d,v in chi.items() if v['lolos']}
@@ -141,23 +148,13 @@ minv = min(candi[d]['chi2'] for d in candi)
 chosen = next(d for d in prio if d in candi and abs(candi[d]['chi2']-minv) < 1e-9)
 print(f">> DIPILIH: {chosen} (chi2={chi[chosen]['chi2']})")
 
-# ---- 7. R24, tc, MONONOBE (rumus [19]-[22]), RASIONAL [23] ----
+# ---- 7. R24 (T=10) ----
+# Field LAMA to/td/tc/I/Q dengan parameter Lo=200, Ss=0,002, Ld=300 DIHAPUS
+# (keputusan 4 REVISI.md) - rantai tc/I/Q desain dihitung di analisis_desain.py
+# memakai parameter_desain dari DB.
 R24 = Xres[10][chosen]
-Lo, Ss = 200.0, 0.002
-Ld, nM, B, y = 300.0, 0.011, 0.30, 0.25
-to = 0.0195*Lo**0.77/Ss**0.385
-Vch = (1/nM)*((B*y)/(B+2*y))**(2/3)*math.sqrt(Ss)
-td = Ld/(60*Vch)
-tc = (to+td)/60
-I = (R24/24)*((24/tc)**(2/3))     # rumus [19] sesuai tesis
-Crun, Aha = 0.80, 10400/1e6
-Q = 0.278*Crun*I*Aha
 print(f"\n=== HASIL AKHIR ===")
 print(f"R24 (T=10, {chosen}) = {R24:.3f} mm")
-print(f"to={to:.2f} mnt  V={Vch:.3f} m/s  td={td:.2f} mnt  tc={tc:.4f} jam")
-print(f"I Mononobe = ({R24:.1f}/24)*(24/{tc:.4f})^(2/3) = {I:.2f} mm/jam")
-print(f"Q Rasional = 0.278*{Crun}*{I:.2f}*{Aha} = {Q:.4f} m3/dtk")
-print(f"Va (th=1 jam) = {Q*3600:.1f} m3")
 
 out = dict(years=ys_list, per_year=per_year, missing=missing_real,
            xmax=xmax.tolist(), xbar=float(xbar), S=float(S), Cv=float(Cv), Cs=float(Cs), Ck=float(Ck),
@@ -168,7 +165,6 @@ out = dict(years=ys_list, per_year=per_year, missing=missing_real,
            gumbel=dict(a=float(aG), Xo=float(Xo)),
            logXbar=float(logXbar), Slog=float(Slog), Cslog=float(Cslog),
            freq=Xres, chi=chi, chosen=chosen,
-           R24=float(R24), to=float(to), Vch=float(Vch), td=float(td), tc=float(tc),
-           I=float(I), C=float(Crun), A_km2=Aha, Q=float(Q))
+           R24=float(R24))
 json.dump(out, open(ROOT / "data" / "processed" / "hasil_validasi.json", "w"), indent=1)
 print("\n[ok] data/processed/hasil_validasi.json tersimpan")

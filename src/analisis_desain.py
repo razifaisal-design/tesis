@@ -17,7 +17,7 @@ HD = ROOT / "data" / "processed" / "hasil_desain.json"
 con = sqlite3.connect(DB)
 kaw = {k: (v, s, src) for k, v, s, src in con.execute("SELECT kunci,nilai,satuan,sumber FROM kawasan")}
 par = {k: (v, s, ket) for k, v, s, ket in con.execute("SELECT kunci,nilai,satuan,keterangan FROM parameter_desain")}
-evap = {b: et0 for b, et0, _ in con.execute("SELECT bulan,et0_mm,keterangan FROM evaporasi")}
+evap = {b: e for b, e, _ in con.execute("SELECT bulan,evap_mm,keterangan FROM evaporasi")}
 pipa = [(lab, d, a) for _, lab, d, a in con.execute("SELECT urut,label,d_mm,luas_m2 FROM pipa_standar ORDER BY urut")]
 bulan = [(y, b, mm, nd) for y, b, mm, nd in con.execute(
     "SELECT tahun,bulan,mm,n_hari FROM curah_hujan_bulanan ORDER BY tahun,bulan")]
@@ -37,7 +37,6 @@ th_des = num(kaw, "th_durasi_efektif")
 Lo, S_atap = num(par, "Lo"), num(par, "S_atap")
 Ld, S_pipa, n_pipa = num(par, "Ld"), num(par, "S_pipa"), num(par, "n_pipa")
 he = num(par, "he_kolam")
-Ap = num(par, "Ap_kolam")
 
 hv = json.load(open(HV))
 R24 = hv["freq"]["10"][hv["chosen"]]           # hujan rencana T=10 th, dist. terpilih (mm)
@@ -101,16 +100,22 @@ V_harian_unit = jiwa * q * f_des / 1000          # m3/hari/unit
 V_bak = math.ceil(V_harian_unit * 1.5 * 10) / 10
 
 # ---------- 4. NERACA AIR BULANAN [24]-[28] + kurva massa (Rippl [27]) ----------
+# Evaporasi = metode Penman muka air (src/evaporasi_penman.py), BUKAN ET0 rumput.
+# Hujan langsung di permukaan kolam (P x Ap) dimasukkan sebagai pemasukan
+# (keputusan 1 REVISI.md) sehingga umpan balik luas kolam menjadi negatif
+# dan iterasi Vs <-> Ap konvergen.
 def neraca(fraksi, ap):
     out = []
     K = 0.0
     for y, b, R, nd in bulan:
-        supply = C * A_atap * R / 1000           # [24]
+        supply = C * A_atap * R / 1000           # [24] limpasan atap
+        p_pond = R * ap / 1000                   # hujan langsung di permukaan kolam
         demand = (Qharian * fraksi) * nd         # [25]
-        E = evap[b] * ap / 1000                  # ET0 x k(=1) x luas kolam
-        net = supply - demand - E
+        E = evap[b] * ap / 1000                  # evaporasi Penman x luas muka kolam
+        net = supply + p_pond - demand - E
         K += net
-        out.append(dict(tahun=y, bulan=b, R=R, supply=supply, demand=demand, E=E, net=net, K=K))
+        out.append(dict(tahun=y, bulan=b, R=R, supply=supply, p_pond=p_pond,
+                        demand=demand, E=E, net=net, K=K))
     Sp = 0.0
     vs = 0.0
     for r in out:
@@ -121,39 +126,46 @@ def neraca(fraksi, ap):
     total_net = out[-1]["K"]
     return out, vs, total_net
 
-# ---------- 5. VA + KOLAM: pass-1 terdokumentasi + tabel sensitivitas evaporasi ----------
-# Masalah: Ei = ET0 x luas kolam, sedangkan luas kolam = fungsi(Vs) -> feedback.
-# Aturan desain (terdokumentasi): Ei dihitung pada luas kolam kriteria atenuasi (Va),
-# karena luas kolam hasil desain belum diketahui saat neraca disusun.
-# Tabel sensitivitas menunjukkan pertumbuhan Vs akibat feedback evaporasi
-# (defisit kritis 32 bulan Sep-2017 s/d Apr-2020; neraca tahunan berubah negatif
-# bila luas kolam > ~4.800 m2 -> Vs tak terhingga, lihat catatan Tesis 2.4).
+# ---------- 5. VA + KOLAM: iterasi konvergensi Vs <-> Ap + sensitivitas ----------
+# Umpan balik: E dan hujan kolam bergantung luas muka (Ap), sedangkan Ap ditentukan
+# Vs = fungsi(E, hujan kolam). Dengan hujan langsung dimasukkan (R > E klimatologis),
+# umpan baliknya negatif dan iterasi mencapai titik tetap: Ap(Vs(Ap)) = Ap.
+# Basis neraca SEMUA fraksi = Ap titik tetap (kondisi desain final) [28].
 def dimensi(v):
     l = math.ceil(math.sqrt(v / he) * 2) / 2
     p = math.ceil(v / (he * l) * 2) / 2
     return p, l, p * l
 
 Va = Q * th_des * 3600                           # [32]
-p0, l0, Ap0 = dimensi(Va)                        # kolam kriteria atenuasi
-_, Vs1, total_net = neraca(f_des, Ap0)           # Vs pass-1
-V_desain = max(Vs1, Va)                          # [33]
-p_kol, l_kol, Ap = dimensi(V_desain)
+p0, l0, Ap0 = dimensi(Va)                        # kolam kriteria atenuasi (titik awal iterasi)
+
+iterasi = []
+Ap_i = Ap0
+for k in range(1, 21):
+    _, Vs_i, tn_i = neraca(f_des, Ap_i)
+    V_i = max(Vs_i, Va)                          # [33]
+    p_i, l_i, Ap_baru = dimensi(V_i)
+    iterasi.append(dict(i=k, Ap_masuk=Ap_i, Vs=round(Vs_i, 1), V=round(V_i, 1),
+                        p=p_i, l=l_i, Ap_keluar=Ap_baru))
+    if Ap_baru == Ap_i:
+        Vs, V_desain, total_net = Vs_i, V_i, tn_i
+        break
+    Ap_i = Ap_baru
+else:
+    raise RuntimeError("iterasi Vs<->Ap tidak konvergen dalam 20 langkah")
+p_kol, l_kol, Ap = dimensi(V_desain)             # = titik tetap (p_i, l_i, Ap_i)
 V_kolam = p_kol * l_kol * he                     # [34]
 htotal = he + hf                                 # [35]
-_, Vs2, _ = neraca(f_des, Ap)                    # pass-2: E pada luas kolam hasil desain
-V2 = max(Vs2, Va)
-_, _, Ap2 = dimensi(V2)
-_, Vs3, _ = neraca(f_des, Ap2)                   # pass-3: menunjukkan feedback
 Va_sens = {f"{th:g}": Q * th * 3600 for th in [0.5, 1.0, 1.5, 2.0, 3.0]}
 
-# neraca + reliability untuk SEMUA fraksi pada basis E yang sama (Ap kriteria Va) [28]
+# neraca + reliability untuk SEMUA fraksi pada basis Ap titik tetap [28]
 neraca_all = {}
 for f in FR:
-    rows_f, vs_f, tn = neraca(f, Ap0)
+    rows_f, vs_f, tn = neraca(f, Ap)
     S = 0.0
     n_penuh = 0
     for r in rows_f:
-        muat = S + r["supply"] - r["E"]
+        muat = S + r["supply"] + r["p_pond"] - r["E"]
         r["terpenuhi"] = 1 if muat >= r["demand"] else 0
         n_penuh += r["terpenuhi"]
         S = min(V_desain, max(0.0, muat - r["demand"]))   # [26]
@@ -190,17 +202,16 @@ hasil = [
     ("Q_kapasitas_talang", round(Q_talang, 5), "m3/dtk", f"segi empat {b_th}x{h_th} m, S={S_th}"),
     ("V_bak_unit", V_bak, "m3", "asumsi 1,5x kebutuhan harian unit"),
     ("Va", round(Va, 1), "m3", f"[32] Qin.th, th={th_des:g} jam"),
-    ("Ap_kriteria_Va", Ap0, "m2", f"luas kolam kriteria atenuasi ({p0}x{l0} m)"),
-    ("Vs_pass1", round(Vs1, 1), "m3", f"[27] Rippl fraksi 65%, E pada Ap={Ap0:g} m2 (basis desain)"),
-    ("Vs_pass2", round(Vs2, 1), "m3", f"E pada luas kolam hasil desain ({Ap:g} m2) - feedback"),
-    ("Vs_pass3", round(Vs3, 1), "m3", f"E pada luas kolam pass-2 ({Ap2:g} m2) - feedback divergen"),
-    ("V_desain", round(V_desain, 1), "m3", "[33] maks(Vs_pass1, Va)"),
+    ("Ap_kriteria_Va", Ap0, "m2", f"luas kolam kriteria atenuasi ({p0}x{l0} m) - titik awal iterasi"),
+    ("Vs", round(Vs, 1), "m3", f"[27] Rippl fraksi 65% pada Ap titik tetap ({Ap:g} m2)"),
+    ("iterasi_konvergen", json.dumps(iterasi), "-", "iterasi Vs<->Ap sampai titik tetap (rincian di hasil_desain.json)"),
+    ("V_desain", round(V_desain, 1), "m3", "[33] maks(Vs, Va) pada titik tetap"),
     ("p_kolam", p_kol, "m", "panjang kolam"),
     ("l_kolam", l_kol, "m", "lebar kolam"),
     ("he_kolam", he, "m", "kedalaman efektif"),
     ("hf_freeboard", hf, "m", "[35]"),
     ("htotal", htotal, "m", "[35]"),
-    ("Ap_kolam", Ap, "m2", "luas permukaan (konvergen iterasi)"),
+    ("Ap_kolam", Ap, "m2", "luas permukaan (titik tetap iterasi Vs<->Ap)"),
     ("D_overflow", D_ov_kom, "mm", "pipa pelimpah utk Qin"),
     ("n_bulan", len(bulan), "bulan", "periode neraca 2012-2025"),
     ("total_net_65", round(total_net, 1), "m3", "neraca kumulatif fraksi 65%"),
@@ -211,10 +222,10 @@ for f in FR:
                   f"[28] terpenuhi {neraca_all[f]['n_penuh']}/{neraca_all[f]['n_total']} bln"))
 hasil.append(("Va_sensitivitas", json.dumps(Va_sens), "m3", "th 0,5-3 jam [3.4.3]"))
 con.executemany("INSERT INTO hasil_desain VALUES (?,?,?,?)", hasil)
-con.executemany("INSERT INTO neraca_bulanan VALUES (?,?,?,?,?,?,?,?,?,?)",
-                [(r["tahun"], r["bulan"], f, round(r["supply"], 2), round(r["demand"], 2),
-                  round(r["E"], 2), round(r["net"], 2), round(r["K"], 2), round(r["defisit"], 2),
-                  r["terpenuhi"])
+con.executemany("INSERT INTO neraca_bulanan VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                [(r["tahun"], r["bulan"], f, round(r["supply"], 2), round(r["p_pond"], 2),
+                  round(r["demand"], 2), round(r["E"], 2), round(r["net"], 2), round(r["K"], 2),
+                  round(r["defisit"], 2), r["terpenuhi"])
                  for f in FR for r in neraca_all[f]["rows"]])
 con.commit()
 con.close()
@@ -222,10 +233,10 @@ con.close()
 json.dump(dict(
     R24=R24, distribusi=chosen, Qharian=Qharian,
     hidrolika=dict(to=to, td=td, tc=tc, I=I, Q=Q, Dteor=Dteor, Dkom=Dkom, v=v_pipa,
-                   kapasitas=kapasitas_pipa, iterasi=iter_rows),
+                   kapasitas=kapasitas_pipa, C=C, A_km2=A_km2, iterasi=iter_rows),
     unit=dict(Q_unit=Q_unit, D_kom=D_unit_kom, v=v_unit,
               Q_talang=Q_talang, v_talang=v_talang, V_bak=V_bak),
-    kolam=dict(Va=Va, Vs=Vs1, Vs_pass2=Vs2, Vs_pass3=Vs3, Ap_kriteria_Va=Ap0,
+    kolam=dict(Va=Va, Vs=Vs, Ap_kriteria_Va=Ap0, iterasi_konvergen=iterasi,
                V_desain=V_desain, p=p_kol, l=l_kol, he=he, hf=hf,
                htotal=htotal, Ap=Ap, D_overflow=D_ov_kom, Va_sensitivitas=Va_sens),
     neraca={f"{f:.2f}": dict(vs=neraca_all[f]["vs"], reliability=neraca_all[f]["reliability"],
@@ -237,6 +248,8 @@ print(f"  R24 ({chosen}) = {R24:.2f} mm | I = {I:.2f} mm/jam | Q = {Q:.4f} m3/dt
 print(f"  to = {to:.2f} mnt | td = {td:.2f} mnt | tc = {tc:.4f} jam")
 print(f"  pipa induk: D teoritis {Dteor*1000:.0f} mm -> komersial {Dkom:.0f} mm, v = {v_pipa:.2f} m/dtk")
 print(f"  per unit: Q = {Q_unit*1000:.2f} l/dtk, pipa {D_unit_kom:.0f} mm, talang kapasitas {Q_talang*1000:.2f} l/dtk")
-print(f"  kolam: Vs1 = {Vs1:.0f} | Va = {Va:.0f} | Vdesain = {V_desain:.0f} m3 -> {p_kol} x {l_kol} x {he} m (+freeboard {hf} m)")
-print(f"  feedback evaporasi: Vs pass-2 = {Vs2:.0f} | pass-3 = {Vs3:.0f} m3 (defisit kritis 32 bln, neraca th positif s/d Ap ~4.800 m2)")
+print(f"  iterasi Vs<->Ap ({len(iterasi)} langkah): " +
+      " -> ".join(f"Ap={it['Ap_masuk']:g}->{it['Ap_keluar']:g}" for it in iterasi) +
+      f" | titik tetap Ap = {Ap:g} m2")
+print(f"  kolam: Vs = {Vs:.0f} | Va = {Va:.0f} | Vdesain = {V_desain:.0f} m3 -> {p_kol} x {l_kol} x {he} m (+freeboard {hf} m)")
 print(f"  reliability fraksi: " + " | ".join(f"{f:.0%}: {neraca_all[f]['reliability']:.1f}%" for f in FR))

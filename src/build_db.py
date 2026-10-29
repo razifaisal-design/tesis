@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """Bangun SQLite data/processed/hidrologi.db sebagai sumber kebenaran semua analisis.
 Isi: data mentah curah hujan harian + turunannya (bulanan), parameter kawasan/site,
-evaporasi, tabel pipa standar, dan parameter desain (sesuai Proposal Tesis)."""
+evaporasi muka air Penman (src/evaporasi_penman.py), tabel pipa standar, dan
+parameter desain (sesuai Proposal Tesis)."""
 import math
+import csv
 import calendar
 import sqlite3
 import datetime
@@ -75,12 +77,18 @@ parameter_rows = [
     ("S_pipa", 0.003, "m/m", "Kemiringan pipa 0,30% (asumsi topografi datar - WAJIB diverifikasi waterpass)"),
     ("n_pipa", 0.011, "-", "Manning pipa (Tabel 2.8)"),
     ("he_kolam", 3.00, "m", "Kedalaman efektif kolam (asumsi desain)"),
-    ("Ap_kolam", 1200.0, "m2", "Luas permukaan kolam utk evaporasi - hasil iterasi (cek konsistensi di Desain_Kolam)"),
     ("distribusi", "Bab V (jaringan tekan + pompa)", "-", "Perancangan jaringan distribusi dilakukan tahap teknis (Tesis 3.4.4)"),
 ]
 
-# ---------- 5. evaporasi bulanan (ASUMSI - ganti data BMKG/ERA5) ----------
-evap_rows = [(b, 120.0, "ASUMSI rata-rata ET0 (mm/bulan) - ganti dengan data BMKG/ERA5 (Tesis 3.3.2)") for b in range(1, 13)]
+# ---------- 5. evaporasi bulanan (Penman muka air, src/evaporasi_penman.py) ----------
+EVAP_CSV = ROOT / "data" / "processed" / "evaporasi_penman.csv"
+assert EVAP_CSV.exists(), f"{EVAP_CSV} tidak ada - jalankan python3 src/evaporasi_penman.py"
+evap_rows = []
+with open(EVAP_CSV) as fh:
+    for row in csv.DictReader(fh):
+        evap_rows.append((int(row["bulan"]), float(row["evap_mm"]), float(row["e0_mm_hari"]),
+                          float(row["t_c"]), float(row["rh_pct"]), float(row["u2_ms"]),
+                          float(row["rs_mj"]), row["keterangan"]))
 
 # ---------- 6. tabel pipa standar ----------
 pipa_rows = [
@@ -110,11 +118,12 @@ CREATE TABLE curah_hujan_bulanan (
     PRIMARY KEY (tahun, bulan));
 CREATE TABLE kawasan (kunci TEXT PRIMARY KEY, nilai TEXT, satuan TEXT, sumber TEXT);
 CREATE TABLE parameter_desain (kunci TEXT PRIMARY KEY, nilai TEXT, satuan TEXT, keterangan TEXT);
-CREATE TABLE evaporasi (bulan INTEGER PRIMARY KEY, et0_mm REAL, keterangan TEXT);
+CREATE TABLE evaporasi (bulan INTEGER PRIMARY KEY, evap_mm REAL, e0_mm_hari REAL,
+    t_c REAL, rh_pct REAL, u2_ms REAL, rs_mj REAL, keterangan TEXT);
 CREATE TABLE pipa_standar (urut INTEGER PRIMARY KEY, label TEXT, d_mm REAL, luas_m2 REAL);
 CREATE TABLE hasil_desain (kunci TEXT PRIMARY KEY, nilai TEXT, satuan TEXT, ket TEXT);
 CREATE TABLE neraca_bulanan (
-    tahun INTEGER, bulan INTEGER, fraksi REAL, supply_m3 REAL, demand_m3 REAL,
+    tahun INTEGER, bulan INTEGER, fraksi REAL, supply_m3 REAL, p_pond_m3 REAL, demand_m3 REAL,
     e_m3 REAL, net_m3 REAL, kumulatif_m3 REAL, defisit_m3 REAL, terpenuhi INTEGER,
     PRIMARY KEY (tahun, bulan, fraksi));
 CREATE TABLE meta (kunci TEXT PRIMARY KEY, nilai TEXT);
@@ -123,7 +132,7 @@ con.executemany("INSERT INTO curah_hujan_harian VALUES (?,?,?,?,?)", rows)
 con.executemany("INSERT INTO curah_hujan_bulanan VALUES (?,?,?,?)", bulan_rows)
 con.executemany("INSERT INTO kawasan VALUES (?,?,?,?)", kawasan_rows)
 con.executemany("INSERT INTO parameter_desain VALUES (?,?,?,?)", parameter_rows)
-con.executemany("INSERT INTO evaporasi VALUES (?,?,?)", evap_rows)
+con.executemany("INSERT INTO evaporasi VALUES (?,?,?,?,?,?,?,?)", evap_rows)
 con.executemany("INSERT INTO pipa_standar VALUES (?,?,?,?)",
                 [(u, lab, d, round(math.pi * (d / 1000) ** 2 / 4, 6)) for u, lab, d in pipa_rows])
 con.executemany("INSERT INTO meta VALUES (?,?)", [
@@ -131,6 +140,7 @@ con.executemany("INSERT INTO meta VALUES (?,?)", [
     ("dibuat", datetime.datetime.now().isoformat(timespec="seconds")),
     ("jumlah_hari", str(len(rows))),
     ("jumlah_hilang", str(sum(1 for r in rows if r[4] is None))),
+    ("sumber_evaporasi", "Penman (1948) muka air - NOAA ISD Supadio + NASA POWER (src/evaporasi_penman.py)"),
 ])
 con.commit()
 con.close()

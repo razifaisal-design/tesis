@@ -1,0 +1,13 @@
+bulan,evap_mm,e0_mm_hari,t_c,rh_pct,u2_ms,rs_mj,n_tahun,keterangan
+1,149.98,4.838,26.98,84.1,1.31,17.50,14,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+2,148.64,5.257,27.08,82.7,1.29,19.06,14,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+3,166.18,5.361,27.39,82.5,1.19,19.38,14,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+4,157.75,5.258,27.54,83.5,1.14,19.12,14,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+5,158.35,5.108,27.89,83.3,1.10,18.57,14,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+6,150.17,5.006,27.68,82.1,1.17,18.29,14,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+7,160.84,5.188,27.51,80.7,1.32,18.86,14,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+8,161.16,5.199,27.38,80.5,1.38,18.65,14,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+9,159.21,5.307,27.40,80.6,1.30,18.97,13,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+10,151.50,4.887,27.12,83.7,1.15,17.62,13,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+11,142.30,4.743,26.91,85.5,1.15,17.34,13,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"
+12,145.07,4.680,26.92,85.2,1.27,17.01,13,"Penman (1948) muka air - NOAA ISD Supadio (T, Td, u, P) + NASA POWER CERES (Rs)"

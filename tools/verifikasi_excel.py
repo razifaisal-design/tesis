@@ -58,11 +58,6 @@ def check(label, actual, expected, kind="rel", tol=1e-6):
     return ok
 
 
-def dimensi(v, he):
-    l = math.ceil(math.sqrt(v / he) * 2) / 2
-    p = math.ceil(v / (he * l) * 2) / 2
-    return p, l, p * l
-
 # ---------- A. sheet lama (silang dgn hasil_validasi.json) ----------
 check("Statistik!B4 Xbar", cval("Statistik", "B4"), HV["xbar"])
 check("Statistik!B5 S", cval("Statistik", "B5"), HV["S"])
@@ -75,12 +70,13 @@ check("Statistik!B11 Cslog", cval("Statistik", "B11"), HV["Cslog"])
 check("Frekuensi!G10 XT LP3 T=10", cval("Frekuensi", "G10"), HV["freq"]["10"]["LP3"], "abs", 0.001)
 check("Chi_Kuadrat!B47 distribusi", cval("Chi_Kuadrat", "B47"), HV["chosen"], "str")
 check("Debit!B16 R24", cval("Debit_Rencana", "B16"), HV["R24"], "abs", 0.0015)
-check("Debit!B17 to", cval("Debit_Rencana", "B17"), HV["to"])
-check("Debit!B18 V", cval("Debit_Rencana", "B18"), HV["Vch"])
-check("Debit!B19 td", cval("Debit_Rencana", "B19"), HV["td"])
-check("Debit!B20 tc", cval("Debit_Rencana", "B20"), HV["tc"])
-check("Debit!B21 I", cval("Debit_Rencana", "B21"), HV["I"], "rel", 1e-4)
-check("Debit!B22 Q", cval("Debit_Rencana", "B22"), HV["Q"], "rel", 1e-4)
+check("Debit!B17 to", cval("Debit_Rencana", "B17"), HD["hidrolika"]["to"], "rel", 1e-4)
+check("Debit!B18 v pipa", cval("Debit_Rencana", "B18"), HD["hidrolika"]["v"], "rel", 1e-4)
+check("Debit!B19 td", cval("Debit_Rencana", "B19"), HD["hidrolika"]["td"], "rel", 1e-4)
+check("Debit!B20 tc", cval("Debit_Rencana", "B20"), HD["hidrolika"]["tc"], "rel", 1e-4)
+check("Debit!B21 I", cval("Debit_Rencana", "B21"), HD["hidrolika"]["I"], "rel", 1e-4)
+check("Debit!B22 Q", cval("Debit_Rencana", "B22"), HD["hidrolika"]["Q"], "rel", 1e-4)
+check("Debit!B23 Va", cval("Debit_Rencana", "B23"), HD["kolam"]["Va"], "rel", 1e-4)
 
 # ---------- B. sheet Kawasan ----------
 check("Kawasan!B19 Q kebutuhan (l/hari)", cval("Kawasan", "B19"), 76800.0, "abs", 1e-6)
@@ -113,25 +109,19 @@ check("Hidrolika!B80 V bak unit", cval("Hidrolika_Pipa", "B80"), U["V_bak"], "ab
 # ---------- D. sheet Desain_Kolam ----------
 K = HD["kolam"]
 he = float(K["he"])
+check("Kolam!B9 Ap iterasi konvergensi", cval("Desain_Kolam", "B9"), K["Ap"], "abs", 1e-6)
 check("Kolam!B13 Va", cval("Desain_Kolam", "B13"), K["Va"], "rel", 1e-4)
 check("Kolam!B16 Ap kriteria", cval("Desain_Kolam", "B16"), K["Ap_kriteria_Va"], "abs", 1e-6)
-check("Kolam!B20 Vs pass-1", cval("Desain_Kolam", "B20"), K["Vs"], "abs", 0.05)
+check("Kolam!B20 Vs", cval("Desain_Kolam", "B20"), K["Vs"], "abs", 0.05)
 check("Kolam!B21 V desain", cval("Desain_Kolam", "B21"), K["V_desain"], "abs", 0.05)
 check("Kolam!B22 l", cval("Desain_Kolam", "B22"), K["l"], "abs", 1e-9)
 check("Kolam!B23 p", cval("Desain_Kolam", "B23"), K["p"], "abs", 1e-9)
-check("Kolam!B24 Ap hasil desain", cval("Desain_Kolam", "B24"), K["Ap"], "abs", 1e-6)
+check("Kolam!B24 Ap hasil dimensi live", cval("Desain_Kolam", "B24"), K["Ap"], "abs", 1e-6)
 check("Kolam!B25 V kolam", cval("Desain_Kolam", "B25"), K["p"] * K["l"] * he, "abs", 1e-6)
 check("Kolam!B26 h total", cval("Desain_Kolam", "B26"), K["htotal"], "abs", 1e-9)
-check("Kolam!B30 Vs pass-2", cval("Desain_Kolam", "B30"), K["Vs_pass2"], "abs", 0.05)
-V2 = max(K["Vs_pass2"], K["Va"])
-p2, l2, ap2 = dimensi(V2, he)
-check("Kolam!B31 V2", cval("Desain_Kolam", "B31"), V2, "abs", 0.05)
-check("Kolam!B32 l2", cval("Desain_Kolam", "B32"), l2, "abs", 1e-9)
-check("Kolam!B33 p2", cval("Desain_Kolam", "B33"), p2, "abs", 1e-9)
-check("Kolam!B34 Ap2", cval("Desain_Kolam", "B34"), ap2, "abs", 1e-6)
-check("Kolam!B35 Vs pass-3", cval("Desain_Kolam", "B35"), K["Vs_pass3"], "abs", 0.05)
-check("Kolam!B42 status Ap_kolam DB",
-      cval("Desain_Kolam", "B42"), "UPDATE parameter_desain.Ap_kolam", "str")
+check("Kolam!B41 selisih live-iterasi", cval("Desain_Kolam", "B41"), 0.0, "abs", 0.011)
+check("Kolam!B42 status konvergensi",
+      cval("Desain_Kolam", "B42"), "KONVERGEN (iterasi tuntas)", "str")
 for i, th in enumerate(["0.5", "1", "1.5", "2", "3"]):
     check(f"Kolam!B{46+i} Va th={th}", cval("Desain_Kolam", f"B{46+i}"),
           K["Va_sensitivitas"][th], "rel", 1e-4)
@@ -147,10 +137,10 @@ for i, fk in enumerate(FR):
 # ---------- E. sheet Neraca_Air: seluruh deret vs tabel neraca_bulanan ----------
 con = sqlite3.connect(DB)
 dbn = {}
-for y, b, f, sup, dem, e, net, kum, defi, tp in con.execute(
-        "SELECT tahun,bulan,fraksi,supply_m3,demand_m3,e_m3,net_m3,kumulatif_m3,defisit_m3,terpenuhi "
+for y, b, f, sup, pond, dem, e, net, kum, defi, tp in con.execute(
+        "SELECT tahun,bulan,fraksi,supply_m3,p_pond_m3,demand_m3,e_m3,net_m3,kumulatif_m3,defisit_m3,terpenuhi "
         "FROM neraca_bulanan"):
-    dbn[(y, b, f)] = (sup, dem, e, net, kum, defi, tp)
+    dbn[(y, b, f)] = (sup, pond, dem, e, net, kum, defi, tp)
 NB = len(list(con.execute("SELECT 1 FROM curah_hujan_bulanan")))
 con.close()
 
@@ -164,8 +154,8 @@ for r in range(1, ws.max_row + 1):
         blocks.append((float(a.split("=")[1].split()[0]), r))
 assert len(blocks) == 5, f"blok fraksi ditemukan: {len(blocks)}"
 
-COLS = [(6, 0, "supply"), (7, 1, "demand"), (8, 2, "E"), (9, 3, "net"),
-        (10, 4, "kumulatif"), (12, 5, "defisit"), (14, 6, "terpenuhi")]
+COLS = [(6, 0, "supply"), (7, 1, "p_pond"), (8, 2, "demand"), (9, 3, "E"), (10, 4, "net"),
+        (11, 5, "kumulatif"), (13, 6, "defisit"), (15, 7, "terpenuhi")]
 NSERI = 0
 for f, r0 in blocks:
     rd = r0 + 2
@@ -196,10 +186,6 @@ for f, r0 in blocks:
           HD["neraca"][fk]["reliability"], "abs", 1e-6)
     check(f"Neraca!E{s+3} total net f={fk}", cval("Neraca_Air", f"E{s+3}"),
           HD["neraca"][fk]["total_net"], "abs", 0.05)
-rdes = [r for f, r in blocks if abs(f - 0.65) < 1e-9][0]
-sd = rdes + 2 + NB
-check("Neraca!E%d Vs pass-2" % (sd + 4), cval("Neraca_Air", f"E{sd+4}"), K["Vs_pass2"], "abs", 0.05)
-check("Neraca!E%d Vs pass-3" % (sd + 5), cval("Neraca_Air", f"E{sd+5}"), K["Vs_pass3"], "abs", 0.05)
 
 # ---------- F. tidak boleh ada sel error formula ----------
 NERR = 0
@@ -221,7 +207,7 @@ if NERR:
 # ---------- laporan ----------
 print(f"\n[cek] {NCHECK} pemeriksaan, {NFAIL} gagal "
       f"(termasuk {NSERI} nilai deret neraca vs DB)")
-print(f"      deret Neraca_Air: 5 fraksi x {NB} bulan x 7 kolom")
+print(f"      deret Neraca_Air: 5 fraksi x {NB} bulan x 8 kolom (supply, hujan kolam, demand, E, net, kumulatif, defisit, terpenuhi)")
 for line in FAILS[:40]:
     print(line)
 if NFAIL:

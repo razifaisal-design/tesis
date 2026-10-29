@@ -4,6 +4,7 @@ Semua perhitungan memakai formula Excel hidup yang saling terhubung antar-sheet
 (input = data mentah dari SQLite + tabel koefisien referensi).
 Sheet desain: Kawasan, Evaporasi, Hidrolika_Pipa (iterasi envelope, Manning
 aliran penuh), Neraca_Air (Rippl 5 fraksi), Desain_Kolam (Va/Vs/dimensi)."""
+import json
 import sqlite3
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Border, Side, Alignment
@@ -19,10 +20,12 @@ rows = list(con.execute("SELECT tahun,bulan,tgl,tanggal,mm FROM curah_hujan_hari
 years = [r[0] for r in con.execute("SELECT DISTINCT tahun FROM curah_hujan_harian ORDER BY tahun")]
 kaw_rows = list(con.execute("SELECT kunci,nilai,satuan,sumber FROM kawasan ORDER BY rowid"))
 par_rows = list(con.execute("SELECT kunci,nilai,satuan,keterangan FROM parameter_desain ORDER BY rowid"))
-evap_rows = list(con.execute("SELECT bulan,et0_mm,keterangan FROM evaporasi ORDER BY bulan"))
+evap_rows = list(con.execute("SELECT bulan,evap_mm,e0_mm_hari,t_c,rh_pct,u2_ms,rs_mj,keterangan FROM evaporasi ORDER BY bulan"))
 pipa_rows = list(con.execute("SELECT label,d_mm FROM pipa_standar ORDER BY urut"))
 bulan_rows = list(con.execute("SELECT tahun,bulan,mm,n_hari FROM curah_hujan_bulanan ORDER BY tahun,bulan"))
+hd_rows = list(con.execute("SELECT kunci,nilai,satuan,ket FROM hasil_desain ORDER BY rowid"))
 con.close()
+hd = {k: v for k, v, *_ in hd_rows}
 NROW = len(rows)
 LAST = NROW + 1  # baris terakhir data di Data_Harian
 
@@ -31,6 +34,8 @@ def as_num(v):
         return float(v)
     except (TypeError, ValueError):
         return v
+
+par = {k: (as_num(v), s, ket) for k, v, s, ket in par_rows}
 
 # Peta baris sheet Kawasan (data mulai baris 3) + blok turunan/tetap
 KAW_ROW = {kunci: 3 + i for i, (kunci, *_rest) in enumerate(kaw_rows)}
@@ -256,7 +261,7 @@ widths(ws_freq, {"A": 11, "B": 11, "C": 15, "D": 11, "E": 15, "F": 10, "G": 15})
 
 # ================= 7. Chi_Kuadrat =================
 put(ws_chi, "A1", "UJI CHI-KUADRAT PEMILIHAN DISTRIBUSI", font=TITLE)
-put(ws_chi, "A2", "Kelas dibatasi R2, R5, R10, R25 (Tabel probabilitas di sheet Koefisien baris 102-106)")
+put(ws_chi, "A2", "Kelas dibatasi R2, R5, R10, R25 (peluang di sheet Koefisien baris 102-106, menjumlah 1,00 - keputusan 5 REVISI.md)")
 dists = [("Normal", "C", 2, 6), ("Gumbel", "E", 2, 19), ("LP3", "G", 3, 32)]
 kand_cells = {}
 for name, fcol, P, r0 in dists:
@@ -297,24 +302,25 @@ put(ws_chi, "A47", "Distribusi terpilih", font=BOLD)
 put(ws_chi, "B47", f'=IF({kand_cells["LP3"]}=B46,"LP3",IF({kand_cells["Gumbel"]}=B46,"Gumbel",IF({kand_cells["Normal"]}=B46,"Normal","-")))', font=BOLD)
 put(ws_chi, "A48", "chi2 terpilih")
 put(ws_chi, "B48", f'=IF(B47="LP3",B39,IF(B47="Gumbel",B26,B13))', fmt="0.0000")
+put(ws_chi, "A50", "Catatan E>=5 (Cochran): dengan n=14 syarat E>=5 terpenuhi bila kelas 2-5 digabung (E = 7 dan 7); uji gabungan ada di analisis2.py (chi.e5).", font=FONT)
 widths(ws_chi, {"A": 30, "B": 14, "C": 8, "D": 10, "E": 13})
 
-# ================= 8. Debit_Rencana =================
-put(ws_deb, "A1", "PERHITUNGAN DEBIT BANJIR RENCANA (Rasional + Mononobe)", font=TITLE)
-put(ws_deb, "A2", "Sel biru = input asumsi site (ganti dengan data lapangan); sel hitam = formula otomatis.")
+# ================= 8. Debit_Rencana (ringkasan tautan silang) =================
+put(ws_deb, "A1", "PERHITUNGAN DEBIT BANJIR RENCANA - RINGKASAN (tautan silang)", font=TITLE)
+put(ws_deb, "A2", "Nilai desain dihitung pada sheet Hidrolika_Pipa (iterasi envelope, parameter site dari tabel parameter_desain). Sheet ini merangkum dengan tautan silang. Field lama to/td/tc/I/Q (parameter Lo=200, Ss=0,002, Ld=300) telah dihapus (keputusan 4 REVISI.md).")
 header_row(ws_deb, 3, ["Parameter", "Nilai", "Satuan", "Keterangan/Sumber"])
 inputs = [
-    ("Lo (panjang overland)", 200.0, "m", "Asumsi site", "0.0"),
-    ("Ss (kemiringan)", 0.002, "m/m", "Asumsi site", "0.000"),
-    ("Ld (panjang saluran)", 300.0, "m", "Asumsi site", "0.0"),
-    ("n Manning", 0.011, "-", "Tabel 2.8 (saluran beton)", "0.000"),
-    ("B (lebar saluran)", 0.30, "m", "Asumsi site", "0.00"),
-    ("y (tinggi saluran)", 0.25, "m", "Asumsi site", "0.00"),
+    ("Lo (panjang aliran atap)", par["Lo"][0], "m", par["Lo"][2], "0.0"),
+    ("S_atap (kemiringan atap)", par["S_atap"][0], "m/m", par["S_atap"][2], "0.000"),
+    ("Ld (panjang pipa penyalur)", par["Ld"][0], "m", par["Ld"][2], "0.0"),
+    ("S_pipa (kemiringan pipa)", par["S_pipa"][0], "m/m", par["S_pipa"][2], "0.000"),
+    ("n Manning pipa", par["n_pipa"][0], "-", par["n_pipa"][2], "0.000"),
     ("C (koefisien limpasan)", f"=Kawasan!$B${KAW_ROW['C_atap']}", "-",
      "link sheet Kawasan (Tabel 2.7)", "0.00"),
     ("A (luas atap)", f"=Kawasan!$B${KAW_ROW['luas_atap_total']}", "m2",
-     "link sheet Kawasan (1,04 ha)", "0"),
-    ("th (waktu konsentrasi tandon)", 1.0, "jam", "Asumsi desain", "0.0"),
+     "link sheet Kawasan", "0"),
+    ("th (waktu konsentrasi tandon)", f"=Kawasan!$B${KAW_ROW['th_durasi_efektif']}", "jam",
+     "link sheet Kawasan (Tesis 3.4.3)", "0.0"),
 ]
 for i, (lab, val, sat, ket, fmt) in enumerate(inputs):
     r = 4 + i
@@ -324,19 +330,26 @@ for i, (lab, val, sat, ket, fmt) in enumerate(inputs):
         fill=None if is_f else YELLOW, box=True)
     put(ws_deb, f"C{r}", sat, box=True)
     put(ws_deb, f"D{r}", ket, box=True)
-put(ws_deb, "A14", "HASIL PERHITUNGAN", font=BOLD)
+put(ws_deb, "A14", "HASIL PERHITUNGAN (semua tautan silang sheet Hidrolika_Pipa/Desain_Kolam)", font=BOLD)
 header_row(ws_deb, 15, ["Besaran", "Nilai", "Satuan", "Rumus"])
 res = [
     ("R24 curah hujan (T=10 th, dist. terpilih)",
      '=IF(Chi_Kuadrat!$B$47="LP3",Frekuensi!$G$10,IF(Chi_Kuadrat!$B$47="Gumbel",Frekuensi!$E$10,Frekuensi!$C$10))',
-     "mm", "XT distribusi terpilih (sheet Frekuensi, T=10)", "0.000"),
-    ("to (waktu konsentrasi overland)", "=0.0195*B4^0.77/B5^0.385", "menit", "Kirpich", "0.00"),
-    ("V (kecepatan saluran)", "=(1/B7)*((B8*B9)/(B8+2*B9))^(2/3)*SQRT(B5)", "m/s", "Manning", "0.000"),
-    ("td (waktu alir saluran)", "=B6/(60*B18)", "menit", "td = Ld / (60.V)", "0.00"),
-    ("tc (waktu konsentrasi)", "=(B17+B19)/60", "jam", "tc = (to + td)/60", "0.0000"),
-    ("I (intensitas hujan Mononobe)", "=(B16/24)*(24/B20)^(2/3)", "mm/jam", "rumus tesis [19]", "0.00"),
-    ("Q (debit rasional)", "=0.278*B10*B21*(B11/1000000)", "m3/dtk", "Rasional: Q = 0,278.C.I.A", "0.0000"),
-    ("Va (volume tandon, th=1 jam)", "=B22*B12*3600", "m3", "Va = Q.th", "0.0"),
+     "mm", "XT distribusi terpilih (sheet Frekuensi/Chi_Kuadrat)", "0.000"),
+    ("to (waktu konsentrasi overland) [21]", "=Hidrolika_Pipa!$B$10", "menit",
+     "tautan silang Hidrolika_Pipa (Kirpich pada atap)", "0.0000"),
+    ("v pipa desain [39]", "=Hidrolika_Pipa!$B$58", "m/dtk",
+     "tautan silang Hidrolika_Pipa (envelope)", "0.0000"),
+    ("td (waktu alir pipa) [22]", "=Hidrolika_Pipa!$B$53", "menit",
+     "tautan silang Hidrolika_Pipa (envelope)", "0.000"),
+    ("tc (waktu konsentrasi) [20]", "=Hidrolika_Pipa!$B$54", "jam",
+     "tautan silang Hidrolika_Pipa (envelope)", "0.00000"),
+    ("I (intensitas Mononobe) [19]", "=Hidrolika_Pipa!$B$52", "mm/jam",
+     "tautan silang Hidrolika_Pipa (pada Q desain)", "0.00"),
+    ("Q desain (Rasional) [23]", "=Hidrolika_Pipa!$B$51", "m3/dtk",
+     "tautan silang Hidrolika_Pipa (maksimum iterasi)", "0.0000"),
+    ("Va (volume atenuasi, th=1 jam) [32]", "=Desain_Kolam!$B$13", "m3",
+     "Va = Q . th", "0.0"),
 ]
 for i, (lab, f, sat, ket, fmt) in enumerate(res):
     r = 16 + i
@@ -344,8 +357,8 @@ for i, (lab, f, sat, ket, fmt) in enumerate(res):
     put(ws_deb, f"B{r}", f, fmt=fmt, box=True)
     put(ws_deb, f"C{r}", sat, box=True)
     put(ws_deb, f"D{r}", ket, box=True)
-put(ws_deb, "A25", "Catatan: R24 diambil dari XT T=10 tahun distribusi terpilih (hasil uji chi-kuadrat). Parameter site bersifat asumsi dan harus diganti dengan data lapangan.")
-widths(ws_deb, {"A": 42, "B": 13, "C": 9, "D": 45})
+put(ws_deb, "A25", "Catatan: R24 dari XT T=10 tahun distribusi terpilih (uji chi-kuadrat). Parameter site (Lo, S_atap, Ld, S_pipa) masih asumsi - ganti dengan data lapangan.")
+widths(ws_deb, {"A": 42, "B": 13, "C": 9, "D": 55})
 
 # ================= 9. Kawasan (parameter + kebutuhan air) =================
 put(ws_kaw, "A1", "PARAMETER KAWASAN & KEBUTUHAN AIR (sumber: tabel kawasan di data/processed/hidrologi.db)", font=TITLE)
@@ -386,23 +399,29 @@ for k, f in enumerate(FR_LIST):
         put(ws_kaw, f"D{r}", "<- fraksi desain", font=BOLD)
 widths(ws_kaw, {"A": 26, "B": 34, "C": 15, "D": 60})
 
-# ================= 10. Evaporasi =================
-put(ws_eva, "A1", "EVAPORASI (ET0) BULANAN - ASUMSI, ganti dengan data BMKG/ERA5 (Tesis 3.3.2)", font=TITLE)
-header_row(ws_eva, 2, ["Bulan", "ET0 (mm/bulan)", "Keterangan"])
-for i, (b, et0, ket) in enumerate(evap_rows):
-    r = 3 + i
+# ================= 10. Evaporasi (Penman muka air) =================
+put(ws_eva, "A1", "EVAPORASI MUKA AIR (PENMAN 1948) BULANAN", font=TITLE)
+put(ws_eva, "A2", "Sumber: NOAA ISD Supadio (T, titik embun->RH, angin, tekanan) + NASA POWER CERES (Rs); agregasi harian 2012-2025 oleh src/evaporasi_penman.py. Evaporasi muka air terbuka - BUKAN ET0 rumput (keputusan 1 & 10 REVISI.md).")
+header_row(ws_eva, 4, ["Bulan", "Evaporasi E0 (mm/bulan)", "E0 (mm/hari)", "T (oC)", "RH (%)",
+                       "u2 (m/s)", "Rs (MJ/m2/hari)", "Keterangan"])
+for i, (b, e_mm, e_hari, t_c, rh, u2, rs, ket) in enumerate(evap_rows):
+    r = 5 + i
     put(ws_eva, f"A{r}", b, fmt="0", box=True)
-    put(ws_eva, f"B{r}", et0, font=INPUT, fmt="0.0", fill=YELLOW, box=True)
-    put(ws_eva, f"C{r}", ket, box=True)
-put(ws_eva, "A15", "TOTAL SETAHUN", font=BOLD)
-put(ws_eva, "B15", "=SUM(B3:B14)", font=BOLD, fmt="0.0")
-put(ws_eva, "A16", "RATA-RATA", font=BOLD)
-put(ws_eva, "B16", "=AVERAGE(B3:B14)", font=BOLD, fmt="0.0")
-put(ws_eva, "C16", "dipakai sheet Neraca_Air (INDEX/MATCH kolom bulan)")
-widths(ws_eva, {"A": 8, "B": 17, "C": 80})
+    put(ws_eva, f"B{r}", e_mm, font=INPUT, fmt="0.0", fill=YELLOW, box=True)
+    put(ws_eva, f"C{r}", e_hari, font=INPUT, fmt="0.00", box=True)
+    put(ws_eva, f"D{r}", t_c, font=INPUT, fmt="0.0", box=True)
+    put(ws_eva, f"E{r}", rh, font=INPUT, fmt="0", box=True)
+    put(ws_eva, f"F{r}", u2, font=INPUT, fmt="0.00", box=True)
+    put(ws_eva, f"G{r}", rs, font=INPUT, fmt="0.00", box=True)
+    put(ws_eva, f"H{r}", ket, box=True)
+put(ws_eva, "A17", "TOTAL SETAHUN", font=BOLD)
+put(ws_eva, "B17", "=SUM(B5:B16)", font=BOLD, fmt="0.0")
+put(ws_eva, "A18", "RATA-RATA", font=BOLD)
+put(ws_eva, "B18", "=AVERAGE(B5:B16)", font=BOLD, fmt="0.0")
+put(ws_eva, "C18", "dipakai sheet Neraca_Air (INDEX/MATCH kolom bulan)")
+widths(ws_eva, {"A": 8, "B": 21, "C": 12, "D": 9, "E": 9, "F": 11, "G": 17, "H": 80})
 
 # ================= 11. Hidrolika_Pipa (iterasi envelope) =================
-par = {k: (as_num(v), s, ket) for k, v, s, ket in par_rows}
 put(ws_hyp, "A1", "HIDROLIKA PIPA INDUK & PER UNIT - ITERASI ENVELOPE (MANNING ALIRAN PENUH)", font=TITLE)
 put(ws_hyp, "A2", "Aturan envelope: iterasi v<->td<->tc<->I<->Q<->D (12x, seed v=1 m/dtk) ber-osilasi karena umpan balik positif + pembulatan diameter diskrit; Q desain = maksimum iterasi (konservatif), D teoritis dihitung dari Q tsb lalu dibulatkan ke atas ke pipa komersial. Pipa diperlakukan sebagai saluran bulat PENUH terisi (Manning aliran penuh [29][30][38][39]), bukan aliran terbuka.")
 header_row(ws_hyp, 4, ["Parameter", "Nilai", "Satuan", "Sumber/Keterangan"])
@@ -532,27 +551,20 @@ widths(ws_hyp, {"A": 34, "B": 15, "C": 14, "D": 20, "E": 12, "F": 12, "G": 12, "
 
 # ================= 12. Neraca_Air (Rippl, 5 fraksi) =================
 put(ws_nrc, "A1", "NERACA AIR BULANAN - 5 FRAKSI KEBUTUHAN (Rippl [27], 2012-2025)", font=TITLE)
-put(ws_nrc, "A2", "E = ET0 x luas kolam kriteria atenuasi Va (aturan pass-1 terdokumentasi, lihat Desain_Kolam); kolom M-N = simulasi tampungan terbatas V_desain [26][28]; blok fraksi desain punya kolom O-X utk pass-2/pass-3 (umpan balik evaporasi).")
-HDR_N = ["Tahun", "Bulan", "R (mm)", "n hari", "ET0 (mm)", "Supply (m3) [24]", "Demand (m3) [25]",
-         "Evaporasi E (m3)", "Net (m3)", "K kumulatif (m3)", "Sp (m3)", "Defisit (m3)",
-         "S (m3) [26]", "Terpenuhi"]
-HDR2 = ["E pass-2", "Net pass-2", "K pass-2", "Sp pass-2", "Defisit pass-2",
-        "E pass-3", "Net pass-3", "K pass-3", "Sp pass-3", "Defisit pass-3"]
-KLM_AP0 = "Desain_Kolam!$B$16"
+put(ws_nrc, "A2", "E = evaporasi Penman muka air x luas kolam (Desain_Kolam B9, titik tetap iterasi Vs<->Ap); hujan langsung di permukaan kolam (P x Ap) dimasukkan sebagai pemasukan (keputusan 1 REVISI.md); kolom N-O = simulasi tampungan terbatas V_desain [26][28].")
+HDR_N = ["Tahun", "Bulan", "R (mm)", "n hari", "E0 (mm)", "Supply atap (m3) [24]",
+         "Hujan kolam (m3)", "Demand (m3) [25]", "Evaporasi E (m3)", "Net (m3)",
+         "K kumulatif (m3)", "Sp (m3)", "Defisit (m3)", "S (m3) [26]", "Terpenuhi"]
+KLM_AP = "Desain_Kolam!$B$9"
 KLM_VDES = "Desain_Kolam!$B$21"
-KLM_APD = "Desain_Kolam!$B$24"
-KLM_AP2 = "Desain_Kolam!$B$34"
 NB = len(bulan_rows)
 VS, REL, NPN, TNET = {}, {}, {}, {}
-VS2 = VS3 = None
 row = 4
 for k, f in enumerate(FR_LIST):
     r0 = row
     put(ws_nrc, f"A{r0}", f"Fraksi f = {f:.2f}" + ("   (FRAKSI DESAIN)" if k == KDES else ""),
         font=BOLD, fill=YELLOW if k == KDES else None)
     header_row(ws_nrc, r0 + 1, HDR_N)
-    if k == KDES:
-        header_row(ws_nrc, r0 + 1, HDR2, start_col=15)
     rd = r0 + 2
     fr_cell = f"Kawasan!$B${R_FR0 + k}"
     for i, (y, b, mm, nd) in enumerate(bulan_rows):
@@ -561,34 +573,24 @@ for k, f in enumerate(FR_LIST):
         put(ws_nrc, f"B{rr}", b, fmt="0", box=True)
         put(ws_nrc, f"C{rr}", mm, fmt="0.0", box=True)
         put(ws_nrc, f"D{rr}", nd, fmt="0", box=True)
-        put(ws_nrc, f"E{rr}", f"=INDEX(Evaporasi!$B$3:$B$14,MATCH(B{rr},Evaporasi!$A$3:$A$14,0))",
+        put(ws_nrc, f"E{rr}", f"=INDEX(Evaporasi!$B$5:$B$16,MATCH(B{rr},Evaporasi!$A$5:$A$16,0))",
             fmt="0.0", box=True)
         put(ws_nrc, f"F{rr}",
             f"=Kawasan!$B${KAW_ROW['C_atap']}*Kawasan!$B${KAW_ROW['luas_atap_total']}*C{rr}/1000",
             fmt="0.00", box=True)
-        put(ws_nrc, f"G{rr}", f"={fr_cell}*D{rr}", fmt="0.00", box=True)
-        put(ws_nrc, f"H{rr}", f"=E{rr}*{KLM_AP0}/1000", fmt="0.00", box=True)
-        put(ws_nrc, f"I{rr}", f"=F{rr}-G{rr}-H{rr}", fmt="0.00", box=True)
-        put(ws_nrc, f"J{rr}", f"=I{rr}" if i == 0 else f"=J{rr-1}+I{rr}", fmt="0.00", box=True)
-        put(ws_nrc, f"K{rr}", f"=MAX(0,J{rr})" if i == 0 else f"=MAX(K{rr-1},J{rr})", fmt="0.00", box=True)
-        put(ws_nrc, f"L{rr}", f"=K{rr}-J{rr}", fmt="0.00", box=True)
-        put(ws_nrc, f"M{rr}",
-            f"=MIN({KLM_VDES},MAX(0,F{rr}-H{rr}-G{rr}))" if i == 0
-            else f"=MIN({KLM_VDES},MAX(0,M{rr-1}+F{rr}-H{rr}-G{rr}))", fmt="0.00", box=True)
+        put(ws_nrc, f"G{rr}", f"=C{rr}*{KLM_AP}/1000", fmt="0.00", box=True)
+        put(ws_nrc, f"H{rr}", f"={fr_cell}*D{rr}", fmt="0.00", box=True)
+        put(ws_nrc, f"I{rr}", f"=E{rr}*{KLM_AP}/1000", fmt="0.00", box=True)
+        put(ws_nrc, f"J{rr}", f"=F{rr}+G{rr}-H{rr}-I{rr}", fmt="0.00", box=True)
+        put(ws_nrc, f"K{rr}", f"=J{rr}" if i == 0 else f"=K{rr-1}+J{rr}", fmt="0.00", box=True)
+        put(ws_nrc, f"L{rr}", f"=MAX(0,K{rr})" if i == 0 else f"=MAX(L{rr-1},K{rr})", fmt="0.00", box=True)
+        put(ws_nrc, f"M{rr}", f"=L{rr}-K{rr}", fmt="0.00", box=True)
         put(ws_nrc, f"N{rr}",
-            f"=IF(F{rr}-H{rr}>=G{rr},1,0)" if i == 0
-            else f"=IF(M{rr-1}+F{rr}-H{rr}>=G{rr},1,0)", fmt="0", box=True)
-        if k == KDES:
-            put(ws_nrc, f"O{rr}", f"=E{rr}*{KLM_APD}/1000", fmt="0.00", box=True)
-            put(ws_nrc, f"P{rr}", f"=F{rr}-G{rr}-O{rr}", fmt="0.00", box=True)
-            put(ws_nrc, f"Q{rr}", f"=P{rr}" if i == 0 else f"=Q{rr-1}+P{rr}", fmt="0.00", box=True)
-            put(ws_nrc, f"R{rr}", f"=MAX(0,Q{rr})" if i == 0 else f"=MAX(R{rr-1},Q{rr})", fmt="0.00", box=True)
-            put(ws_nrc, f"S{rr}", f"=R{rr}-Q{rr}", fmt="0.00", box=True)
-            put(ws_nrc, f"T{rr}", f"=E{rr}*{KLM_AP2}/1000", fmt="0.00", box=True)
-            put(ws_nrc, f"U{rr}", f"=F{rr}-G{rr}-T{rr}", fmt="0.00", box=True)
-            put(ws_nrc, f"V{rr}", f"=U{rr}" if i == 0 else f"=V{rr-1}+U{rr}", fmt="0.00", box=True)
-            put(ws_nrc, f"W{rr}", f"=MAX(0,V{rr})" if i == 0 else f"=MAX(W{rr-1},V{rr})", fmt="0.00", box=True)
-            put(ws_nrc, f"X{rr}", f"=W{rr}-V{rr}", fmt="0.00", box=True)
+            f"=MIN({KLM_VDES},MAX(0,F{rr}+G{rr}-H{rr}-I{rr}))" if i == 0
+            else f"=MIN({KLM_VDES},MAX(0,N{rr-1}+F{rr}+G{rr}-H{rr}-I{rr}))", fmt="0.00", box=True)
+        put(ws_nrc, f"O{rr}",
+            f"=IF(F{rr}+G{rr}-I{rr}>=H{rr},1,0)" if i == 0
+            else f"=IF(N{rr-1}+F{rr}+G{rr}-I{rr}>=H{rr},1,0)", fmt="0", box=True)
     re_ = rd + NB - 1
     s = re_ + 1
 
@@ -597,30 +599,22 @@ for k, f in enumerate(FR_LIST):
         put(ws_nrc, f"A{srow}", label, font=BOLD, box=True)
         put(ws_nrc, f"E{srow}", formula, font=BOLD, fmt=fmt, box=True)
 
-    summ(f"Vs fraksi {f:.2f} (m3) [27]", f"=MAX(L{rd}:L{re_})", s)
-    summ("Reliability (%) [28]", f"=100*SUM(N{rd}:N{re_})/COUNT(N{rd}:N{re_})", s + 1, "0.0")
-    summ(f"Bulan terpenuhi (dari {NB})", f"=SUM(N{rd}:N{re_})", s + 2, "0")
-    summ("Total net kumulatif (m3)", f"=J{re_}", s + 3)
+    summ(f"Vs fraksi {f:.2f} (m3) [27]", f"=MAX(M{rd}:M{re_})", s)
+    summ("Reliability (%) [28]", f"=100*SUM(O{rd}:O{re_})/COUNT(O{rd}:O{re_})", s + 1, "0.0")
+    summ(f"Bulan terpenuhi (dari {NB})", f"=SUM(O{rd}:O{re_})", s + 2, "0")
+    summ("Total net kumulatif (m3)", f"=K{re_}", s + 3)
     VS[k] = f"Neraca_Air!$E${s}"
     REL[k] = f"Neraca_Air!$E${s+1}"
     NPN[k] = f"Neraca_Air!$E${s+2}"
     TNET[k] = f"Neraca_Air!$E${s+3}"
-    nxt = s + 4
-    if k == KDES:
-        summ("Vs pass-2 (m3)", f"=MAX(S{rd}:S{re_})", s + 4)
-        summ("Vs pass-3 (m3)", f"=MAX(X{rd}:X{re_})", s + 5)
-        VS2 = f"Neraca_Air!$E${s+4}"
-        VS3 = f"Neraca_Air!$E${s+5}"
-        nxt = s + 6
-    row = nxt + 1
+    row = s + 5
 ws_nrc.freeze_panes = "A3"
-widths(ws_nrc, {"A": 9, "B": 7, "C": 9, "D": 8, "E": 11, "F": 14, "G": 14, "H": 14, "I": 12,
-                "J": 15, "K": 11, "L": 12, "M": 12, "N": 11, "O": 11, "P": 12, "Q": 12,
-                "R": 11, "S": 13, "T": 11, "U": 12, "V": 12, "W": 11, "X": 13})
+widths(ws_nrc, {"A": 9, "B": 7, "C": 9, "D": 8, "E": 11, "F": 17, "G": 15, "H": 15, "I": 15,
+                "J": 11, "K": 15, "L": 11, "M": 12, "N": 12, "O": 11})
 
 # ================= 13. Desain_Kolam =================
 put(ws_klm, "A1", "DESAIN KOLAM RETENSI - DIMENSI, FREEBOARD & SENSITIVITAS", font=TITLE)
-put(ws_klm, "A2", "Urutan: Va [32] -> neraca pass-1 (E pada Ap Va) -> Vs [27] -> V desain [33] -> dimensi [34] -> pass-2/pass-3 (umpan balik evaporasi). Dimensi dibulatkan ke atas kelipatan 0,5 m.")
+put(ws_klm, "A2", "Urutan: Va [32] -> neraca (E Penman + hujan kolam pada Ap) -> Vs [27] -> V desain [33] -> dimensi [34] -> iterasi Vs<->Ap sampai titik tetap. B9 = Ap hasil iterasi (tabel hasil_desain, src/analisis_desain.py); blok baris 28-35 merangkum iterasi, blok 37-42 memverifikasi titik tetap secara live. Dimensi dibulatkan ke atas kelipatan 0,5 m.")
 header_row(ws_klm, 4, ["Parameter", "Nilai", "Satuan", "Sumber/Keterangan"])
 put(ws_klm, "A5", "he (kedalaman efektif kolam)", box=True)
 put(ws_klm, "B5", par["he_kolam"][0], font=INPUT, fmt="0.00", fill=YELLOW, box=True)
@@ -638,10 +632,10 @@ put(ws_klm, "A8", "Q desain", box=True)
 put(ws_klm, "B8", "=Hidrolika_Pipa!$B$51", fmt="0.0000", box=True)
 put(ws_klm, "C8", "m3/dtk", box=True)
 put(ws_klm, "D8", "link Hidrolika_Pipa (envelope)", box=True)
-put(ws_klm, "A9", "Ap_kolam (parameter DB)", box=True)
-put(ws_klm, "B9", par["Ap_kolam"][0], font=INPUT, fmt="0.00", fill=YELLOW, box=True)
+put(ws_klm, "A9", "Ap hasil iterasi konvergensi", box=True)
+put(ws_klm, "B9", as_num(hd["Ap_kolam"]), font=INPUT, fmt="0.00", fill=YELLOW, box=True)
 put(ws_klm, "C9", "m2", box=True)
-put(ws_klm, "D9", "parameter_desain - dipakai utk cek konsistensi", box=True)
+put(ws_klm, "D9", "tabel hasil_desain (titik tetap iterasi Vs<->Ap) - parameter_desain.Ap_kolam dihapus (keputusan 2)", box=True)
 
 put(ws_klm, "A11", "KRITERIA ATENUASI Va [32]", font=BOLD)
 header_row(ws_klm, 12, ["Besaran", "Nilai", "Satuan", "Rumus/Keterangan"])
@@ -659,18 +653,18 @@ put(ws_klm, "C15", "m", box=True)
 put(ws_klm, "A16", "Ap kriteria atenuasi", box=True)
 put(ws_klm, "B16", "=B14*B15", fmt="0.00", box=True)
 put(ws_klm, "C16", "m2", box=True)
-put(ws_klm, "D16", "basis E neraca pass-1 (Neraca_Air kolom H)", box=True)
+put(ws_klm, "D16", "titik awal iterasi Vs<->Ap (kolam kriteria atenuasi)", box=True)
 
-put(ws_klm, "A18", "NERACA PASS-1 & DIMENSI KOLAM (fraksi desain)", font=BOLD)
+put(ws_klm, "A18", "NERACA & DIMENSI KOLAM (fraksi desain, basis Ap B9)", font=BOLD)
 header_row(ws_klm, 19, ["Besaran", "Nilai", "Satuan", "Rumus/Keterangan"])
-put(ws_klm, "A20", "Vs pass-1 [27]", box=True)
+put(ws_klm, "A20", "Vs [27]", box=True)
 put(ws_klm, "B20", f"={VS[KDES]}", fmt="0.00", box=True)
 put(ws_klm, "C20", "m3", box=True)
-put(ws_klm, "D20", "MAX defisit, sheet Neraca_Air", box=True)
+put(ws_klm, "D20", "MAX defisit, sheet Neraca_Air (basis B9)", box=True)
 put(ws_klm, "A21", "V desain [33]", font=BOLD, box=True)
 put(ws_klm, "B21", "=MAX(B20,B13)", font=BOLD, fmt="0.00", box=True)
 put(ws_klm, "C21", "m3", box=True)
-put(ws_klm, "D21", "maks(Vs, Va)", box=True)
+put(ws_klm, "D21", "maks(Vs, Va) pada titik tetap", box=True)
 put(ws_klm, "A22", "l (lebar kolam)", box=True)
 put(ws_klm, "B22", "=CEILING(SQRT(B21/B5),0.5)", fmt="0.0", box=True)
 put(ws_klm, "C22", "m", box=True)
@@ -680,7 +674,7 @@ put(ws_klm, "C23", "m", box=True)
 put(ws_klm, "A24", "Ap hasil desain", box=True)
 put(ws_klm, "B24", "=B22*B23", fmt="0.00", box=True)
 put(ws_klm, "C24", "m2", box=True)
-put(ws_klm, "D24", "basis E pass-2 (Neraca_Air kolom O)", box=True)
+put(ws_klm, "D24", "Ap dimensi live - dibandingkan dgn B9 di blok cek (baris 37-42)", box=True)
 put(ws_klm, "A25", "V kolam [34]", box=True)
 put(ws_klm, "B25", "=B23*B22*B5", fmt="0.00", box=True)
 put(ws_klm, "C25", "m3", box=True)
@@ -690,43 +684,37 @@ put(ws_klm, "B26", "=B5+B6", fmt="0.00", box=True)
 put(ws_klm, "C26", "m", box=True)
 put(ws_klm, "D26", "he + hf", box=True)
 
-put(ws_klm, "A28", "UMPAN BALIK EVAPORASI (pass-2 & pass-3)", font=BOLD)
-header_row(ws_klm, 29, ["Besaran", "Nilai", "Satuan", "Rumus/Keterangan"])
-put(ws_klm, "A30", "Vs pass-2", box=True)
-put(ws_klm, "B30", f"={VS2}", fmt="0.00", box=True)
-put(ws_klm, "C30", "m3", box=True)
-put(ws_klm, "D30", "E pada Ap hasil desain (Neraca_Air O-S)", box=True)
-put(ws_klm, "A31", "V2 = maks(Vs pass-2, Va)", box=True)
-put(ws_klm, "B31", "=MAX(B30,B13)", fmt="0.00", box=True)
-put(ws_klm, "C31", "m3", box=True)
-put(ws_klm, "A32", "l2", box=True)
-put(ws_klm, "B32", "=CEILING(SQRT(B31/B5),0.5)", fmt="0.0", box=True)
-put(ws_klm, "C32", "m", box=True)
-put(ws_klm, "A33", "p2", box=True)
-put(ws_klm, "B33", "=CEILING(B31/(B5*B32),0.5)", fmt="0.0", box=True)
-put(ws_klm, "C33", "m", box=True)
-put(ws_klm, "A34", "Ap2", box=True)
-put(ws_klm, "B34", "=B32*B33", fmt="0.00", box=True)
-put(ws_klm, "C34", "m2", box=True)
-put(ws_klm, "D34", "basis E pass-3 (Neraca_Air kolom T)", box=True)
-put(ws_klm, "A35", "Vs pass-3", box=True)
-put(ws_klm, "B35", f"={VS3}", fmt="0.00", box=True)
-put(ws_klm, "C35", "m3", box=True)
-put(ws_klm, "D35", "E pada Ap2 - divergen bila luas kolam besar (catatan Tesis)", box=True)
+put(ws_klm, "A28", "CATATAN ITERASI KONVERGENSI Vs <-> Ap (tabel hasil_desain, src/analisis_desain.py)", font=BOLD)
+header_row(ws_klm, 29, ["i", "Ap masuk (m2)", "Vs (m3)", "V = maks(Vs,Va)", "l (m)", "p (m)",
+                        "Ap keluar (m2)"])
+ITER_KONV = json.loads(hd["iterasi_konvergen"])
+assert len(ITER_KONV) <= 6, f"baris iterasi {len(ITER_KONV)} > 6 - geser blok cek konsistensi"
+for i, it in enumerate(ITER_KONV):
+    r = 30 + i
+    put(ws_klm, f"A{r}", it["i"], fmt="0", box=True)
+    put(ws_klm, f"B{r}", it["Ap_masuk"], font=INPUT, fmt="0.0", box=True)
+    put(ws_klm, f"C{r}", it["Vs"], font=INPUT, fmt="0.0", box=True)
+    put(ws_klm, f"D{r}", it["V"], font=INPUT, fmt="0.0", box=True)
+    put(ws_klm, f"E{r}", it["l"], font=INPUT, fmt="0.0", box=True)
+    put(ws_klm, f"F{r}", it["p"], font=INPUT, fmt="0.0", box=True)
+    put(ws_klm, f"G{r}", it["Ap_keluar"], font=INPUT, fmt="0.0", box=True)
+put(ws_klm, f"A{30 + len(ITER_KONV)}",
+    f"Konvergen bila Ap keluar = Ap masuk (tercapai pada langkah {len(ITER_KONV)}). "
+    "Nilai biru = catatan iterasi; blok neraca menghitung ulang keadaan tetap secara live.")
 
-put(ws_klm, "A37", "CEK KONSISTENSI parameter_desain.Ap_kolam", font=BOLD)
+put(ws_klm, "A37", "CEK KONVERGENSI ITERASI Vs <-> Ap (live vs tabel hasil_desain)", font=BOLD)
 header_row(ws_klm, 38, ["Cek", "Nilai", "Satuan", "Keterangan"])
-put(ws_klm, "A39", "Ap kriteria (basis E neraca)", box=True)
-put(ws_klm, "B39", "=B16", fmt="0.00", box=True)
+put(ws_klm, "A39", "Ap hasil iterasi (B9, hasil_desain)", box=True)
+put(ws_klm, "B39", "=B9", fmt="0.00", box=True)
 put(ws_klm, "C39", "m2", box=True)
-put(ws_klm, "A40", "Ap hasil desain", box=True)
+put(ws_klm, "A40", "Ap hasil dimensi live (B24)", box=True)
 put(ws_klm, "B40", "=B24", fmt="0.00", box=True)
 put(ws_klm, "C40", "m2", box=True)
-put(ws_klm, "A41", "Selisih hasil desain - Ap DB", box=True)
-put(ws_klm, "B41", "=B40-B9", fmt="0.00", box=True)
+put(ws_klm, "A41", "Selisih live - iterasi", box=True)
+put(ws_klm, "B41", "=B40-B39", fmt="0.00", box=True)
 put(ws_klm, "C41", "m2", box=True)
-put(ws_klm, "A42", "Status konsistensi", box=True)
-put(ws_klm, "B42", '=IF(ABS(B41)<=0.05*B9,"KONSISTEN (<=5%)","UPDATE parameter_desain.Ap_kolam")',
+put(ws_klm, "A42", "Status konvergensi", box=True)
+put(ws_klm, "B42", '=IF(ABS(B41)<=0.01,"KONVERGEN (iterasi tuntas)","ULANG ITERASI - jalankan src/analisis_desain.py")',
     font=BOLD, box=True)
 
 put(ws_klm, "A44", "SENSITIVITAS Va terhadap th (Tesis 3.4.3)", font=BOLD)
@@ -746,7 +734,7 @@ for k, f in enumerate(FR_LIST):
         fill=YELLOW if k == KDES else None, box=True)
     put(ws_klm, f"D{r}", f"={NPN[k]}", fmt="0", box=True)
     put(ws_klm, f"E{r}", f"={TNET[k]}", fmt="0.00", box=True)
-put(ws_klm, "A60", "Catatan: fraksi desain 0,65 (highlight kuning). Pass-2/pass-3 memperlihatkan umpan balik evaporasi: neraca tahunan berubah negatif bila luas kolam melebihi ~4.800 m2 -> Vs terus tumbuh (defisit kritis 32 bulan Sep-2017 s/d Apr-2020).")
+put(ws_klm, "A60", "Catatan: fraksi desain 0,65 (highlight kuning). Evaporasi = Penman muka air dan hujan langsung di permukaan kolam (P x Ap) dimasukkan sebagai pemasukan (keputusan 1 REVISI.md), sehingga iterasi Vs<->Ap konvergen pada titik tetap (blok baris 28-35, cek live baris 37-42).")
 widths(ws_klm, {"A": 34, "B": 15, "C": 16, "D": 58, "E": 15})
 
 # ================= 14. Koefisien =================
@@ -830,13 +818,14 @@ for i, (cs, ks) in enumerate(lp3):
     put(ws_koef, f"A{r}", cs, fmt="0.0", box=True)
     for j, k in enumerate(ks):
         put(ws_koef, f"{'BCDEFG'[j]}{r}", k, fmt="0.000", box=True)
-put(ws_koef, "A100", "Probabilitas kelas uji chi-kuadrat (5 kelas dibatasi R2, R5, R10, R25)", font=BOLD)
+put(ws_koef, "A100", "Probabilitas kelas uji chi-kuadrat (5 kelas dibatasi R2, R5, R10, R25; jumlah p = 1,00)", font=BOLD)
 header_row(ws_koef, 101, ["Kelas", "p"])
 for j, (lab, p) in enumerate([("x <= R2", 0.50), ("R2 < x <= R5", 0.20), ("R5 < x <= R10", 0.10),
-                              ("R10 < x <= R25", 0.06), ("x > R25", 0.04)]):
+                              ("R10 < x <= R25", 0.06), ("x > R25", 0.14)]):
     r = 102 + j
     put(ws_koef, f"A{r}", lab, box=True)
     put(ws_koef, f"B{r}", p, fmt="0.00", box=True)
+put(ws_koef, "A107", "Keputusan 5 REVISI.md: p menjumlah 1,00; syarat E>=5 ditinjau dengan kelas gabungan (lihat analisis2.py, chi.e5).")
 put(ws_koef, "A108", "Nilai kritik chi-kuadrat", font=BOLD)
 header_row(ws_koef, 109, ["df", "Kritik"])
 for j, (df, k) in enumerate([(1, 3.841), (2, 5.991)]):
