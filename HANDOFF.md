@@ -10,7 +10,8 @@ riset Python/GitHub (`src/`, `tools/`, `data/{raw,sample,processed}`, `manuscrip
 `figures/`, `notebooks/`), Git sudah di-init dengan `.gitignore` (data mentah ~1,2 GB
 di-ignore; `manuscript/*.docx` dikecualikan agar ter-commit), `requirements.txt` dan
 `README.md` (peta tahap resmi) tersedia di root. Path folder bernomor lama sudah
-dihapus.
+dihapus. Repo sudah dipush ke **https://github.com/razifaisal-design/tesis**
+(private, branch `main`, remote `origin`).
 
 | Tahap | Bab | Isi | Status |
 |---|---|---|---|
