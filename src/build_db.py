@@ -127,7 +127,7 @@ con.executemany("INSERT INTO evaporasi VALUES (?,?,?)", evap_rows)
 con.executemany("INSERT INTO pipa_standar VALUES (?,?,?,?)",
                 [(u, lab, d, round(math.pi * (d / 1000) ** 2 / 4, 6)) for u, lab, d in pipa_rows])
 con.executemany("INSERT INTO meta VALUES (?,?)", [
-    ("sumber_harian", str(SRC)),
+    ("sumber_harian", str(SRC.relative_to(ROOT)) if SRC.is_relative_to(ROOT) else str(SRC)),
     ("dibuat", datetime.datetime.now().isoformat(timespec="seconds")),
     ("jumlah_hari", str(len(rows))),
     ("jumlah_hilang", str(sum(1 for r in rows if r[4] is None))),

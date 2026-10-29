@@ -4,7 +4,12 @@ import math, json, datetime
 import pandas as pd
 import numpy as np
 
-F = "/Users/razi/Documents/CommandCode/Hidrologi/01_Data/Curah_Hujan_Sungai_Ambawang_BWSK_2012-2025.xlsx"
+from pathlib import Path
+
+ROOT = next(p for p in Path(__file__).resolve().parents if (p / "requirements.txt").exists())
+F = ROOT / "data" / "raw" / "Curah_Hujan_Sungai_Ambawang_BWSK_2012-2025.xlsx"
+if not F.exists():
+    F = ROOT / "data" / "sample" / F.name
 
 # ---------- 1. PARSE DATA (matrix per tahun: row=tanggal, col=bulan) ----------
 DAYS_IN_MONTH = [31,28,31,30,31,30,31,31,30,31,30,31]
@@ -211,5 +216,5 @@ out = dict(years=ys_list, per_year=per_year, missing=missing_real,
            kons=dict(Sstar=Sstar.tolist(), Q=Q, qsqrt=q_sqrt_n, qcrit=q_crit),
            freq=Xres, chi=chi, chosen=chosen,
            R24=R24, to=to, Vch=Vch, td=td, tc=tc, I=I, C=Crun, A_km2=Aha, Q=Q)
-json.dump(out, open("/Users/razi/Documents/CommandCode/Hidrologi/04_Hasil/hasil.json","w"), indent=1, default=str)
-print("\n[ok] hasil.json tersimpan")
+json.dump(out, open(ROOT / "data" / "processed" / "hasil_legacy.json", "w"), indent=1, default=str)
+print("\n[ok] data/processed/hasil_legacy.json tersimpan")

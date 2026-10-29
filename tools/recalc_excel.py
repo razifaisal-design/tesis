@@ -23,7 +23,7 @@ SOFFICE_CANDIDATES = [
 
 
 def find_soffice():
-    p = shutil.which("soffice")
+    p = shutil.which("soffice") or shutil.which("libreoffice")  # Linux pakai nama 'libreoffice'
     if p:
         return p
     for c in SOFFICE_CANDIDATES:
