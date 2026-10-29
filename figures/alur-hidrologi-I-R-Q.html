@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alur Analisis Hidrologi: Data Hujan → I, R, Q</title>
+<style>
+  :root{
+    --bg:#f4f6fa; --card:#ffffff; --border:#e3e8f0; --ink:#1e293b; --muted:#64748b;
+    --slate:#64748b; --indigo:#6366f1; --sky:#0284c7; --blue:#2563eb;
+    --amber:#d97706; --teal:#0d9488; --green:#16a34a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5; padding:32px 16px 48px;
+  }
+  .wrap{max-width:960px;margin:0 auto}
+  header{text-align:center;margin-bottom:20px}
+  header h1{font-size:28px;letter-spacing:-.02em}
+  header p{color:var(--muted);margin-top:6px;font-size:15px}
+  header p b{font-weight:700}
+  .r-c{color:var(--blue)} .i-c{color:var(--amber)} .q-c{color:var(--green)}
+
+  .legend{display:flex;justify-content:center;gap:12px;margin:18px 0 26px;flex-wrap:wrap}
+  .leg{
+    display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);
+    border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;box-shadow:0 1px 2px rgba(15,23,42,.05);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .leg:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(15,23,42,.08)}
+  .leg .dot{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff}
+  .dot-r{background:var(--blue)} .dot-i{background:var(--amber)} .dot-q{background:var(--green)}
+  .leg small{color:var(--muted)}
+
+  .flow{display:flex;flex-direction:column;align-items:stretch}
+  .stage{
+    background:var(--card);border:1px solid var(--border);border-left:5px solid var(--acc,var(--slate));
+    border-radius:14px;padding:18px 20px;box-shadow:0 1px 3px rgba(15,23,42,.06);
+  }
+  .stage-head{display:flex;align-items:flex-start;gap:12px}
+  .num{
+    flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--acc,var(--slate));color:#fff;
+    display:grid;place-items:center;font-weight:800;font-size:14px;margin-top:2px;
+  }
+  .stage-head h2{font-size:17px;letter-spacing:-.01em}
+  .stage-head .sub{color:var(--muted);font-size:13px;margin-top:1px}
+  .sheet{
+    margin-left:auto;flex:0 0 auto;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
+    color:var(--muted);background:#f1f5f9;border:1px solid var(--border);border-radius:6px;padding:3px 8px;white-space:nowrap;
+  }
+  .body-row{display:flex;gap:18px;margin-top:14px;align-items:stretch}
+  .chips-zone{flex:1;min-width:0}
+  .chips-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:8px 0 6px}
+  .chips-label:first-child{margin-top:0}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:5px 11px;font-size:13px;
+    transition:border-color .15s, background .15s;
+  }
+  .chip:hover{border-color:var(--acc,var(--slate));background:#fff}
+
+  .out{
+    flex:0 0 235px;border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center;
+  }
+  .out-letter{
+    flex:0 0 auto;width:52px;height:52px;border-radius:14px;display:grid;place-items:center;
+    font-size:28px;font-weight:800;
+  }
+  .out b{display:block;font-size:14px}
+  .out small{color:var(--muted);font-size:12px;line-height:1.35;display:block;margin-top:2px}
+  .out-r{background:#eff6ff;border:1px solid #bfdbfe}
+  .out-r .out-letter{background:var(--blue);color:#fff}
+  .out-i{background:#fffbeb;border:1px solid #fde68a}
+  .out-i .out-letter{background:var(--amber);color:#fff}
+  .out-q{background:#f0fdf4;border:1px solid #bbf7d0}
+  .out-q .out-letter{background:var(--green);color:#fff}
+
+  .mini-out{
+    display:inline-flex;align-items:center;gap:7px;background:#eff6ff;border:1px dashed #93c5fd;
+    border-radius:8px;padding:5px 11px;font-size:13px;font-weight:600;color:#1d4ed8;margin-top:10px;
+  }
+  .mini-out .m{font-weight:800}
+
+  .arrow{width:2px;height:34px;background:#c9d3e0;margin:0 auto;position:relative;flex:0 0 auto}
+  .arrow::after{
+    content:"";position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);
+    border:7px solid transparent;border-top-color:#c9d3e0;
+  }
+
+  .summary{
+    margin-top:26px;background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:18px 20px;box-shadow:0 1px 3px rgba(15,23,42,.06);
+  }
+  .summary h3{font-size:15px;margin-bottom:10px}
+  .sum-row{display:flex;gap:12px;flex-wrap:wrap}
+  .sum{
+    flex:1;min-width:200px;border-radius:10px;padding:12px 14px;font-size:13px;
+  }
+  .sum b{font-size:14px}
+  .sum-r{background:#eff6ff;color:#1e3a8a}
+  .sum-i{background:#fffbeb;color:#78350f}
+  .sum-q{background:#f0fdf4;color:#14532d}
+
+  .note{
+    margin-top:14px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:12px 14px;
+    font-size:13px;color:#7c2d12;
+  }
+  .note b{font-weight:700}
+  @media (max-width:720px){
+    .body-row{flex-direction:column}
+    .out{flex:1 1 auto}
+    .sheet{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Alur Analisis Hidrologi</h1>
+    <p>Dari data curah hujan harian → hujan areal → hujan rencana <b class="r-c">R</b> → intensitas <b class="i-c">I</b> → debit <b class="q-c">Q</b></p>
+  </header>
+
+  <div class="legend">
+    <div class="leg" onclick="jump('s4')"><span class="dot dot-r">R</span>Hujan <small>(mm)</small></div>
+    <div class="leg" onclick="jump('s5')"><span class="dot dot-i">I</span>Intensitas <small>(mm/jam)</small></div>
+    <div class="leg" onclick="jump('s7')"><span class="dot dot-q">Q</span>Debit <small>(m³/dtk)</small></div>
+  </div>
+
+  <div class="flow">
+
+    <!-- 1 DATA -->
+    <section class="stage" id="s1" style="--acc:var(--slate)">
+      <div class="stage-head">
+        <span class="num">1</span>
+        <div><h2>Data Mentah</h2><p class="sub">Curah hujan harian (mm) dari stasiun pengamat</p></div>
+        <span class="sheet">Sheet 01</span>
+      </div>
+      <div class="body-row"><div class="chips-zone">
+        <div class="chips">
+          <span class="chip">Stasiun A</span><span class="chip">Stasiun B</span><span class="chip">Stasiun C</span>
+          <span class="chip">Jumlah hari hujan</span><span class="chip">Max 1H / 2H / 3H</span>
+        </div>
+      </div></div>
+    </section>
+    <div class="arrow"></div>
+
+    <!-- 2 KUALITAS DATA -->
+    <section class="stage" id="s2" style="--acc:var(--indigo)">
+      <div class="stage-head">
+        <span class="num">2</span>
+        <div><h2>Kualitas Data</h2><p class="sub">Pengisian data hilang + pengujian deret sebelum dianalisis</p></div>
+        <span class="sheet">Sheet 02 – 13</span>
+      </div>
+      <div class="body-row"><div class="chips-zone">
+        <div class="chips-label">Pengisian data hilang (dibanding % error)</div>
+        <div class="chips">
+          <span class="chip">Isi Rasional</span><span class="chip">Isi Reciprocal</span>
+          <span class="chip">Bilangan Acak</span><span class="chip">Markov</span>
+        </div>
+        <div class="chips-label">Uji deret</div>
+        <div class="chips">
+          <span class="chip">Konsistensi RAPS</span><span class="chip">WRAPS</span>
+          <span class="chip">Von Neumann</span><span class="chip">Homogenitas</span>
+        </div>
+      </div></div>
+    </section>
+    <div class="arrow"></div>
+
+    <!-- 3 HUJAN AREAL -->
+    <section class="stage" id="s3" style="--acc:var(--sky)">
+      <div class="stage-head">
+        <span class="num">3</span>
+        <div><h2>Hujan Kawasan / Areal</h2><p class="sub">Menggabungkan beberapa stasiun menjadi satu hujan representatif DAS</p></div>
+        <span class="sheet">Sheet 14</span>
+      </div>
+      <div class="body-row"><div class="chips-zone">
+        <div class="chips">
+          <span class="chip">Pembobotan antar stasiun</span><span class="chip">Rata-rata areal</span>
+        </div>
+        <div class="mini-out"><span class="m">R̄</span> Hujan areal harian representatif</div>
+      </div></div>
+    </section>
+    <div class="arrow"></div>
+
+    <!-- 4 ANALISIS FREKUENSI -->
+    <section class="stage" id="s4" style="--acc:var(--blue)">
+      <div class="stage-head">
+        <span class="num">4</span>
+        <div><h2>Analisis Frekuensi</h2><p class="sub">Mencocokkan distribusi untuk memperkirakan hujan periode ulang T</p></div>
+        <span class="sheet">Sheet 15 – 17</span>
+      </div>
+      <div class="body-row">
+        <div class="chips-zone">
+          <div class="chips">
+            <span class="chip">Normal</span><span class="chip">Gumbel Tipe I</span><span class="chip">Log-Pearson III</span>
+            <span class="chip">Periode ulang T (2, 5, 10, 25, 50, 100 th)</span>
+          </div>
+        </div>
+        <div class="out out-r">
+          <span class="out-letter">R</span>
+          <div><b>Hujan Rencana R(T)</b><small>kedalaman hujan (mm) untuk periode ulang T terpilih</small></div>
+        </div>
+      </div>
+    </section>
+    <div class="arrow"></div>
+
+    <!-- 5 INTENSITAS -->
+    <section class="stage" id="s5" style="--acc:var(--amber)">
+      <div class="stage-head">
+        <span class="num">5</span>
+        <div><h2>Intensitas &amp; Kurva IDF</h2><p class="sub">Hujan rencana dipecah per durasi → intensitas untuk durasi t</p></div>
+        <span class="sheet">Sheet 18 – 21</span>
+      </div>
+      <div class="body-row">
+        <div class="chips-zone">
+          <div class="chips">
+            <span class="chip">Hitung tc</span><span class="chip">Hujan maks (Gumbel) per durasi</span>
+            <span class="chip">Intensitas menitan</span><span class="chip">Kurva IDF</span><span class="chip">Hyetograph</span>
+          </div>
+        </div>
+        <div class="out out-i">
+          <span class="out-letter">I</span>
+          <div><b>Intensitas I(t)</b><small>mm/jam untuk durasi t (mis. t = tc), dari kurva IDF</small></div>
+        </div>
+      </div>
+    </section>
+    <div class="arrow"></div>
+
+    <!-- 6 TRANSFORMASI -->
+    <section class="stage" id="s6" style="--acc:var(--teal)">
+      <div class="stage-head">
+        <span class="num">6</span>
+        <div><h2>Transformasi Hujan → Debit</h2><p class="sub">Hujan diubah menjadi respon hidrograf lewat kehilangan &amp; unit hidrograf</p></div>
+        <span class="sheet">Sheet 22 – 27, 40 – 41</span>
+      </div>
+      <div class="body-row"><div class="chips-zone">
+        <div class="chips-label">Kehilangan (losses)</div>
+        <div class="chips">
+          <span class="chip">Evapotranspirasi</span><span class="chip">Data iklim &amp; radiasi</span>
+        </div>
+        <div class="chips-label">Konversi hujan → hidrograf</div>
+        <div class="chips">
+          <span class="chip">HSS Snyder–Alexeev</span><span class="chip">Unit Hidrograf Nakayasu</span>
+        </div>
+      </div></div>
+    </section>
+    <div class="arrow"></div>
+
+    <!-- 7 SIMULASI -->
+    <section class="stage" id="s7" style="--acc:var(--green)">
+      <div class="stage-head">
+        <span class="num">7</span>
+        <div><h2>Simulasi Mock &amp; Kalibrasi</h2><p class="sub">Model lumped konseptual disimulasikan &amp; dikalibrasi terhadap data</p></div>
+        <span class="sheet">Sheet 28 – 32</span>
+      </div>
+      <div class="body-row">
+        <div class="chips-zone">
+          <div class="chips">
+            <span class="chip">Kalibrasi Mock</span><span class="chip">Mock dengan kalibrasi</span>
+            <span class="chip">Debit bulanan</span><span class="chip">Debit probabilitas</span><span class="chip">FDC</span>
+          </div>
+        </div>
+        <div class="out out-q">
+          <span class="out-letter">Q</span>
+          <div><b>Debit DAS Q</b><small>m³/dtk — dari konvolusi Nakayasu &amp; simulasi Mock</small></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="summary">
+    <h3>Tiga keluaran akhir</h3>
+    <div class="sum-row">
+      <div class="sum sum-r"><b>R — Hujan rencana (mm)</b><br>dari analisis frekuensi (Normal / Gumbel / LP III) untuk periode ulang T</div>
+      <div class="sum sum-i"><b>I — Intensitas (mm/jam)</b><br>R dibagi durasi melalui kurva IDF, diambil pada durasi tc</div>
+      <div class="sum sum-q"><b>Q — Debit (m³/dtk)</b><br>I × luas DAS dikurangi losses, dikonversi dgn Nakayasu / disimulasikan Mock</div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>Catatan kasus 1 stasiun:</b> tahap 2 (Rasional &amp; Reciprocal) dan tahap 3 (pembobotan areal) tidak diterapkan — R̄ langsung diambil dari stasiun tunggal, sedangkan Bilangan Acak, Markov, uji konsistensi, serta tahap 4–7 tetap sama.
+  </div>
+
+</div>
+<script>
+function jump(id){
+  var el=document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+</script>
+</body>
+</html>

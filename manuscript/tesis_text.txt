@@ -1,0 +1,386 @@
+ANALISIS SISTEM PEMANENAN AIR HUJAN UNTUK
+MITIGASI BANJIR DI KAWASAN PERUMAHAN
+RAJAWALI RESIDENCE
+PROPOSAL TESIS
+Karya Tulis Sebagai Salah Satu Persyaratan
+Untuk Memperoleh Gelar Magister Teknik
+Oleh :
+RAZI FAISAL
+NIM D2071241011
+FAKULTAS TEKNIK
+UNIVERSITAS TANJUNGPURA
+2026
+HALAMAN PERNYATAAN, HALAMAN PENGESAHAN, ABSTRAK, DAN KATA PENGANTAR
+[Sisipkan halaman-halaman ini sesuai format Magister Teknik Sipil Untan. Halaman Persembahan/Pernyataan pada berkas (3) masih berisi sisa skripsi lain (jembatan lengkung rangka baja) dan harus diganti, bukan dipakai ulang.]
+DAFTAR ISI
+DAFTAR TABEL
+Tabel 2.1	Standar Pemakaian Air Bersih Berdasarkan Jenis Penggunaan Gedung
+Tabel 2.2	Nilai Kritis Distribusi t (Uji-t)
+Tabel 2.3	Nilai Kritik Q/√n
+Tabel 2.4	Nilai Variabel Reduksi Distribusi Normal
+Tabel 2.5	Nilai Variabel Reduksi Gumbel Tipe I
+Tabel 2.6	Hubungan Periode Ulang (T) dan Koefisien Kemencengan (Cs)
+Tabel 2.7	Koefisien Limpasan Sesuai Jenis Permukaan Tangkapan
+Tabel 2.8	Koefisien Kekasaran Manning untuk Berbagai Material Pipa
+[Nomor halaman Daftar Tabel/Gambar diisi manual atau lewat fitur Insert Table of Figures di Word]
+DAFTAR GAMBAR
+Gambar 2.1	Ilustrasi Penampungan Air Hujan (Azis dkk., 2019)
+Gambar 3.1	Lokasi Perencanaan
+Gambar 3.2	Siteplan
+Gambar 3.3	Bagan Alir Perancangan
+BAB I
+PENDAHULUAN
+1.1	Latar Belakang
+Kabupaten Kubu Raya mengalami tekanan peningkatan jumlah penduduk sebesar 1,62% dari tahun 2024 ke tahun 2025 (BPS Kabupaten Kubu Raya, 2025), tren yang secara langsung mendorong percepatan pembangunan kawasan perumahan baru di wilayah pinggiran Kota Pontianak, termasuk di Kecamatan Sungai Raya. Pertambahan penduduk ini membawa dua konsekuensi yang saling terkait: pertama, meningkatnya kebutuhan air bersih seiring bertambahnya jumlah unit hunian dan penghuni; kedua, bertambahnya luas lahan terbangun yang secara langsung mengubah karakteristik hidrologi wilayah, khususnya pada kawasan bertanah organosol dan aluvial-gley humus yang secara alami memiliki kapasitas infiltrasi tinggi (Nissa dkk., 2024). Ketika lahan semacam ini digantikan oleh permukaan kedap air seperti atap, jalan aspal, dan trotoar, kapasitas infiltrasi tanah menurun drastis sehingga proporsi limpasan permukaan (surface run-off) meningkat signifikan (Warsilan, 2019). Kondisi ini menegaskan bahwa perencanaan dan pengelolaan ruang serta air yang terintegrasi menjadi semakin penting untuk menjamin keberlanjutan pembangunan di wilayah ini (Pratiwi dkk., 2021).
+Perumahan Rajawali Residence merupakan salah satu kawasan permukiman di Kecamatan Sungai Raya yang dibangun di atas lahan bertopografi relatif datar, karakteristik yang menurut Nissa dkk. (2024) menempatkan kecamatan ini pada kategori kerawanan banjir tinggi hingga sangat tinggi. Kawasan ini memiliki luas 2,88 hektar dengan jumlah unit rumah sebanyak 160 unit, atau setara kepadatan 55,6 unit per hektar. Dengan luas atap rata-rata 65 m² per unit, estimasi total luas atap bangunan di kawasan ini mencapai 10.400 m² (1,04 hektar), atau 36,1% dari total luas kawasan, suatu proporsi yang cukup besar dan menegaskan bahwa atap merupakan titik intersepsi utama limpasan air hujan sebelum masuk ke sistem drainase kawasan, sekaligus berpotensi menjadi sumber tangkapan air hujan yang signifikan bagi sistem pemanenan yang direncanakan.
+Di sisi kebutuhan air, seluruh penghuni Rajawali Residence saat ini bergantung pada sumur bor sebagai sumber air baku, karena jaringan Perusahaan Umum Daerah Air Minum Tirta Raya (Perumdam Tirta Raya) belum menjangkau kawasan ini. Dengan asumsi standar kebutuhan air bersih sebesar 120 liter/penghuni/hari berdasarkan SNI 03-7065-2005 dan rata-rata jumlah penghuni 4 jiwa/unit, total kebutuhan air baku kawasan diperkirakan mencapai 76.800 liter/hari. Angka ini menjadi basis utama penentuan volume kolam retensi sebagai reservoir air baku, yang selanjutnya dioptimalkan dengan mempertimbangkan debit air hujan yang dapat ditangkap dari atap, sehingga dimensi kolam mencerminkan keseimbangan antara kebutuhan air kawasan dan ketersediaan pasokan air hujan.
+Pemenuhan kebutuhan air sebesar itu secara terus-menerus melalui pengambilan air tanah membawa risiko jangka panjang. Pada kawasan permukiman lain yang juga bergantung pada sumur bor dalam akibat jaringan PDAM belum menjangkau, eksploitasi air tanah secara terus-menerus terbukti menurunkan muka air tanah hingga 2,75 meter dalam kurun waktu satu tahun (Putra, 2022). Pemompaan air tanah berpotensi memicu penurunan muka tanah (land subsidence) pada lapisan tanah lunak, walaupun bukan satu-satunya penyebab (Suwarno, 2017), dan melalui pemodelan geoteknik ditunjukkan bahwa semakin cepat muka air tanah menurun akibat eksploitasi, semakin besar pula penurunan muka tanah yang terjadi (Ratulangi dkk., 2025). Temuan-temuan ini menunjukkan bahwa ketergantungan pada sumur bor bukan solusi yang berkelanjutan dalam jangka panjang apabila tidak diimbangi dengan upaya konservasi atau sumber air alternatif. Risiko ini semakin relevan mengingat karakteristik tanah gambut di kawasan ini yang secara alami rentan terhadap konsolidasi dan penurunan permukaan apabila kondisi hidrologis alaminya terganggu oleh pengambilan air tanah yang intensif.
+Pada saat yang sama, topografi kawasan yang relatif datar serta bertambahnya luas permukaan kedap air berpotensi meningkatkan volume limpasan permukaan yang harus ditangani sistem drainase eksisting, yang berupa saluran terbuka berbahan beton dengan dimensi lebar bersih 30 cm dan tinggi 35 cm, dengan kondisi perawatan yang masih baik mengingat kawasan ini baru selesai dibangun pada tahun 2025. Risiko ini terutama muncul pada kondisi curah hujan tinggi, yang di Kecamatan Sungai Raya rata-rata mencapai 3.385,2 mm/tahun dengan 228 hari hujan menurut data resmi BPS Kabupaten Kubu Raya (Kubu Raya Dalam Angka) serta rata-rata 3.080 mm/tahun pada Stasiun Meteorologi Supadio. Dengan demikian, kawasan ini menghadapi dua risiko yang saling terkait yaitu risiko lingkungan jangka panjang akibat eksploitasi air tanah, dan risiko genangan akibat keterbatasan kapasitas drainase, keduanya bersumber dari akar masalah yang sama, yaitu air hujan yang selama ini dibuang sebagai limpasan alih-alih ditampung dan dimanfaatkan.
+Kedua persoalan ini, yaitu kebutuhan air baku yang selama ini dipenuhi dengan risiko eksploitasi air tanah dan potensi limpasan berlebih akibat berkurangnya daya resap lahan, sesungguhnya dapat direspons melalui satu solusi yang sama: pengelolaan air hujan yang tidak lagi berorientasi semata pada pembuangan, melainkan pada penampungan dan pemanfaatan kembali. Pendekatan ini sejalan dengan prinsip sistem drainase berkelanjutan yang mendorong retensi dan pemanfaatan air di sumbernya, alih-alih hanya mempercepat pembuangannya (Yunianta dkk., 2024), serta sejalan dengan amanat Peraturan Menteri Pekerjaan Umum Nomor 11/PRT/M/2014 tentang Pengelolaan Air Hujan, yang mendorong optimalisasi penampungan dan pemanfaatan air hujan untuk mempertahankan kondisi hidrologi alami kawasan.
+Berbeda dengan pendekatan kolam retensi konvensional yang dimensinya semata ditentukan oleh kebutuhan menampung debit puncak limpasan, penelitian ini menempatkan kebutuhan air kawasan sebagai basis utama perhitungan volume kolam retensi, sehingga fungsi kolam bergeser dari sekadar infrastruktur pengendali banjir menjadi reservoir air baku yang sekaligus memberi manfaat pengurangan debit limpasan sebagai co-benefit. Pendekatan sistem pemanenan air hujan terintegrasi, yang menghubungkan intersepsi air dari atap melalui jaringan pipa tertutup menuju kolam retensi komunal, memungkinkan akumulasi volume tangkapan air secara maksimal tanpa kehilangan akibat infiltrasi maupun evaporasi yang biasa terjadi pada saluran terbuka, sehingga volume air yang terkumpul lebih dapat diandalkan untuk memenuhi kebutuhan air baku kawasan secara berkelanjutan dibandingkan pendekatan individual seperti sumur resapan per unit rumah. Dengan kata lain, penelitian ini memandang sistem drainase atap dan kolam retensi kawasan bukan sebagai dua sistem terpisah, melainkan satu kesatuan hidrolis: air yang diintersepsi dari atap menjadi input utama bagi kolam retensi, yang dimensinya dirancang untuk memenuhi kebutuhan air kawasan sekaligus turut mengurangi beban limpasan yang harus ditangani sistem drainase eksisting.
+Namun demikian, penerapan sistem semacam ini oleh pengembang kawasan memerlukan pertimbangan kelayakan ekonomi, mengingat investasi infrastruktur (jaringan pipa, kolam retensi) memerlukan skema pembiayaan yang jelas. Mekanisme retribusi atas pemanfaatan air baku dari unit rumah berpotensi menjadi salah satu sumber pengembalian investasi, meskipun pelaksanaan retribusi layanan publik secara formal berada dalam kewenangan pemerintah daerah dan memerlukan dasar hukum daerah yang berlaku. Oleh karena itu, aspek ekonomi dalam penelitian ini diposisikan sebagai kajian kelayakan investasi dari sudut pandang pengembang, bukan sebagai usulan implementasi retribusi itu sendiri.
+Berdasarkan uraian tersebut, penelitian ini penting dilakukan karena Rajawali Residence menghadapi dua persoalan yang saling terkait namun selama ini ditangani secara terpisah, yaitu ketergantungan pada eksploitasi air tanah untuk memenuhi kebutuhan air baku, dan potensi peningkatan limpasan permukaan akibat berkurangnya daya resap lahan seiring bertambahnya luas permukaan kedap air. Meskipun kawasan ini belum memiliki catatan historis kejadian genangan atau banjir yang terdokumentasi secara resmi, sejumlah faktor risiko yang telah diuraikan, yaitu topografi yang relatif datar, karakteristik tanah gambut yang rentan terhadap gangguan hidrologis, dan proyeksi peningkatan koefisien limpasan akibat pembangunan, secara teknis menunjukkan perlunya langkah antisipatif sejak tahap perencanaan. Pendekatan ini konsisten dengan prinsip mitigasi struktural yang bersifat preventif, yakni merancang infrastruktur pengelolaan air berdasarkan analisis risiko dan proyeksi hidrologis, bukan semata merespons kejadian bencana yang telah terjadi. Dengan demikian, aspek pengendalian limpasan dalam penelitian ini diposisikan sebagai upaya mitigasi dini terhadap potensi genangan di masa mendatang, sementara belum ada kajian teknis yang merancang solusi terintegrasi antara pemenuhan kebutuhan air baku dan pengendalian limpasan tersebut sekaligus mengukur kelayakan ekonominya bagi pengembang. Penelitian ini diharapkan menghasilkan model perencanaan sistem pemanenan air hujan berskala kawasan yang dapat direplikasi pada perumahan lain dengan karakteristik serupa, serta mendukung sasaran Rencana Pembangunan Jangka Menengah Daerah (RPJMD) Kubu Raya 2009–2029 dalam mewujudkan sistem mitigasi bencana banjir.
+1.2	Perumusan Masalah
+Adapun permasalahan yang didapat berdasarkan latar belakang tersebut adalah sebagai berikut :
+1.	Bagaimana perencanaan sistem pemanenan air hujan terpadu, yang meliputi jaringan intersepsi atap (talang dan pipa penyalur), bak penampung sementara, pipa penyalur menuju kolam retensi, dan jaringan pipa distribusi, sebagai upaya pemenuhan kebutuhan air baku sekaligus pengendalian limpasan di Kawasan Perumahan Rajawali Residence?
+2.	Berapa besar kebutuhan air baku kawasan dan debit air hujan yang dapat ditangkap dari atap rumah, dan sejauh mana potensi tangkapan tersebut dapat memenuhi kebutuhan air kawasan?
+3.	Berapa dimensi talang, pipa penyalur, bak penampung sementara, kolam retensi, dan jaringan pipa distribusi yang sesuai untuk memenuhi kebutuhan air baku kawasan sekaligus mengendalikan limpasan permukaan?
+4.	Berapa lama waktu yang dibutuhkan untuk mencapai Break Even Point (BEP) berdasarkan skema retribusi dari unit rumah dalam sistem pengelolaan air hujan kawasan?
+1.3	Tujuan Penelitian
+Penelitian ini bertujuan untuk:
+1.	Merencanakan sistem pemanenan air hujan terpadu, yang meliputi jaringan intersepsi atap (talang dan pipa penyalur), bak penampung sementara, pipa penyalur menuju kolam retensi, dan jaringan pipa distribusi, sebagai upaya pemenuhan kebutuhan air baku sekaligus pengendalian limpasan di Kawasan Perumahan Rajawali Residence.
+2.	Menganalisis kebutuhan air baku kawasan dan debit air hujan yang dapat ditangkap dari atap rumah, serta sejauh mana potensi tangkapan tersebut dapat memenuhi kebutuhan air kawasan.
+3.	Menentukan dimensi talang, pipa penyalur, bak penampung sementara, kolam retensi, dan jaringan pipa distribusi yang sesuai untuk memenuhi kebutuhan air baku kawasan sekaligus mengendalikan limpasan permukaan.
+4.	Menganalisis waktu yang dibutuhkan untuk mencapai Break Even Point (BEP) berdasarkan skema retribusi dari unit rumah dalam sistem pengelolaan air hujan kawasan.
+1.4	Batasan Masalah
+Batasan masalah perancangan yang dilakukan antara lain adalah sebagai berikut :
+1.	Kawasan studi dibatasi pada Perumahan Rajawali Residence, Kecamatan Sungai Raya, Kabupaten Kubu Raya.
+2.	Sistem pengelolaan air hujan yang dikaji meliputi saluran drainase eksisting, jaringan intersepsi atap (talang dan pipa penyalur), bak penampung sementara, pipa penyalur menuju kolam retensi, dan jaringan pipa distribusi ke unit rumah.
+3.	Perhitungan kebutuhan air baku kawasan menggunakan standar kebutuhan air domestik yang berlaku (SNI atau referensi setara) dan tidak mencakup kebutuhan air non-domestik atau komersial.
+4.	Pemanfaatan air hujan difokuskan pada skala kawasan perumahan dan unit rumah, tidak mencakup kawasan di luar batas administratif Rajawali Residence.
+5.	Sistem yang direncanakan tidak melibatkan sumur bor atau eksploitasi air tanah sebagai sumber air baku: sumur bor eksisting yang saat ini digunakan warga diposisikan sebagai kondisi awal (baseline) yang hendak dikurangi ketergantungannya, bukan sebagai bagian dari sistem yang diusulkan.
+6.	Analisis kelayakan ekonomi dilakukan dari sudut pandang pengembang (developer) dengan parameter Break Even Point (BEP), dan tidak mencakup kajian kelayakan dari sudut pandang penghuni atau pemerintah daerah.
+BAB II
+TINJAUAN PUSTAKA
+2.1	Tinjauan Umum
+Sistem penyaluran air hujan yang direncanakan dalam studi ini didefinisikan sebagai mekanisme transmisi hidrolis menggunakan jaringan pipa yang terintegrasi dengan fasilitas tampungan. Berbeda dengan drainase sanitasi yang bertujuan membuang air limbah, sistem perpipaan ini berfokus pada intersepsi limpasan hujan untuk dialirkan menuju kolam retensi. Fungsi utama jaringan pipa ini adalah memastikan transfer volume air yang efisien tanpa kehilangan akibat evaporasi atau infiltrasi liar, sehingga volume air yang masuk ke dalam kolam retensi dapat dimaksimalkan untuk tujuan mitigasi banjir dan pemanenan air hujan.
+Sistem drainase perkotaan memiliki peran strategis dalam menunjang kenyamanan dan kesehatan masyarakat melalui pengendalian banjir. Saidah dkk. (2021) menekankan bahwa salah satu metode drainase adalah pemanfaatan jaringan pipa untuk mengalirkan air secara higienis. Relevan dengan studi ini, aplikasi pipa drainase difokuskan untuk menangkap air hujan yang relatif bersih langsung dari atap dan menyalurkannya ke kolam tampungan. Pendekatan tertutup ini meminimalisir pencemaran yang sering terjadi pada saluran terbuka, sehingga air yang dipanen dapat dimanfaatkan kembali (reuse) untuk kebutuhan non-potabel warga perumahan, sekaligus mereduksi volume genangan secara signifikan (Saidah dkk., 2021). Karena standar 120 liter/jiwa/hari pada Subbab 2.2 mencakup air minum, sistem ini diposisikan melayani fraksi kebutuhan non-potabel; besarnya fraksi ditetapkan sebagai kriteria desain pada Subbab 3.4.1.
+2.2	Kolam Retensi dan Pemanenan Air Hujan
+Dalam konteks penelitian ini, istilah kolam retensi merujuk pada suatu tampungan atau reservoir yang dirancang untuk menampung kelebihan air hujan dengan berbagai potensi pemanfaatan. Salah satu tujuan utamanya adalah sebagai pengendali banjir, di mana tampungan ini dibangun di hulu kawasan rawan banjir untuk mencegah luapan air memasuki area tersebut. Lebih lanjut, air yang tertampung tidak hanya berfungsi dalam pengendalian banjir, tetapi juga berpotensi dimanfaatkan untuk suplai air bersih. Peraturan Menteri Pekerjaan Umum Nomor 12/PRT/M/2014 mendefinisikan kolam retensi sebagai prasarana drainase yang berfungsi menampung dan meresapkan air hujan di suatu wilayah, dan kolam tandon sebagai prasarana drainase yang berfungsi menampung air hujan agar dapat digunakan sebagai sumber air baku. Dengan demikian, kolam retensi dalam penelitian ini memiliki fungsi ganda sebagai kolam retensi dan kolam tandon, yaitu infrastruktur yang tidak hanya mengatasi masalah hidrologi perkotaan tetapi juga berkontribusi pada penyediaan sumber daya air.
+Atap bangunan perumahan merupakan daerah tangkapan air hujan yang efektif karena memiliki koefisien limpasan tinggi. Pemanenan air hujan dari atap dapat mengurangi beban sistem drainase sekaligus menyediakan sumber air alternatif skala kawasan (Rosadi dkk., 2023).
+Gambar 2.1 Ilustrasi Penampungan Air Hujan (Azis dkk., 2019)
+Perhitungan kebutuhan air baku kawasan mengacu pada standar kebutuhan air domestik yang berlaku di Indonesia. Berdasarkan SNI 03-7065-2005 tentang Tata Cara Perencanaan Sistem Plambing, standar pemakaian air pada bangunan rumah tinggal ditetapkan sebesar 120 liter/penghuni/hari, sebagaimana disajikan pada Tabel 2.1. Standar ini digunakan sebagai basis perhitungan.
+Tabel 2.1 Standar Pemakaian Air Bersih Berdasarkan Jenis Penggunaan Gedung
+2.3	Analisis Curah Hujan dan Debit Limpasan
+Curah hujan merupakan parameter utama dalam analisis hidrologi untuk perencanaan sistem drainase dan pemanenan air hujan. Data curah hujan harian maksimum digunakan sebagai dasar penentuan hujan rencana sesuai dengan periode ulang yang ditetapkan.
+Dalam perencanaan drainase kawasan perumahan di Indonesia, keterbatasan data hujan jam-jaman sering menjadi kendala. Oleh karena itu, metode Mononobe banyak digunakan untuk mengonversi curah hujan harian maksimum menjadi intensitas hujan dengan durasi tertentu. Metode Mononobe mengasumsikan bahwa distribusi hujan mengikuti pola empiris yang sesuai untuk kondisi iklim tropis, sehingga masih relevan digunakan dalam perencanaan hidrologi praktis.
+Intensitas hujan hasil konversi metode Mononobe selanjutnya digunakan dalam Metode Rasional untuk menghitung debit limpasan air hujan, khususnya pada daerah tangkapan kecil seperti atap bangunan perumahan. Metode Rasional menyatakan bahwa debit limpasan berbanding lurus dengan intensitas hujan, luas daerah tangkapan, dan koefisien limpasan. Penggunaan kombinasi metode Mononobe dan Metode Rasional dinilai sesuai untuk perencanaan sistem pemanenan air hujan dari atap bangunan karena karakteristik luas tangkapan yang relatif kecil dan respon limpasan yang cepat.
+2.3.1	Analisis Hujan
+Dalam perancangan kolam retensi diperlukan perencanaan hidrologi dengan syarat sebagai berikut :
+1.	Hujan
+a.	Analisis hujan rencana dilakukan dengan analisis frekuensi terhadap data curah hujan harian maksimum tahunan.
+b.	Analisis frekuensi terhadap curah hujan menggunakan metode Log Pearson tipe III atau metode Gumbel sesuai dengan kala ulang 2, 5, 10, dan 25 tahun, dengan kala ulang 10 tahun sebagai hujan rencana desain (Subbab 3.4).
+c.	Perhitungan intensitas hujan ditinjau dengan menggunakan metode Mononobe.
+2.	Debit banjir
+a.	Debit banjir rencana dihitung dengan Metode Rasional.
+b.	Koefisien limpasan (run off) ditentukan berdasarkan tata guna lahan daerah tangkapan.
+2.3.2	Uji Homogenitas
+Sekumpulan data dari suatu variabel hidrologi sebagai hasil pengamatan atau pengukuran dapat disebut sejenis (homogen) apabila data tersebut diukur dari satu resim yang tidak berubah. Data hidrologi disebut tidak homogen apabila dalam setiap sub kelompok populasi ditandai dengan perbedaan nilai rata-rata dan varian terhadap sub kelompok yang lain dalam populasi tersebut. Terdapat banyak faktor yang dapat menyebabkan suatu data menjadi tidak homogen, di antaranya adalah perubahan kondisi alam dan faktor kesalahan manusia (Limantara, 2019). Tesis ini akan menggunakan analisis statistik yaitu Uji-t sebagai metode pengujian homogenitas data curah hujan, dengan persamaan sebagai berikut:
+(2.1)
+Dimana :
+t	=	Nilai t terhitung
+X̄1	=	Rata-rata hitung sampel set ke-1
+X̄2	=	Rata-rata hitung sampel set ke-2
+N1	=	Jumlah sampel set ke-1
+N2	=	Jumlah sampel set ke-2
+S1	=	Simpangan baku sampel set ke-1 (pembagi N1)
+S2	=	Simpangan baku sampel set ke-2 (pembagi N2)
+dk	=	Derajat kebebasan = N1 + N2 − 2
+Tabel 2.2 Nilai Kritis Distribusi t (Uji-t)
+Sel berwarna kuning dikoreksi dari naskah lama (dk = 14, α = 0,01: 1,624 → 2,624). Verifikasi seluruh nilai ke tabel distribusi t baku.
+2.3.3	Uji Konsistensi
+Uji konsistensi dilakukan untuk menguji kebenaran data lapangan. Data yang ada harus benar-benar menggambarkan fenomena hidrologi yang terjadi di lapangan. Menurut Sri Harto (1993), pengujian konsistensi seri data dapat dilakukan dengan membuat suatu kurva ataupun dilakukan dengan cara analitis. Tesis ini akan menggunakan metode analitis Cumulative Deviation sebagai metode untuk uji konsistensi dengan persamaan sebagai berikut:
+(2.2)
+(2.3)
+(2.4)
+dengan nilai k = 1, 2, 3, ..., n. Untuk menentukan suatu data konsisten atau tidak, selanjutnya dihitung nilai Q/√n, dengan Q = maks |S**k|, yang dibandingkan dengan nilai kritik pada Tabel 2.3.
+Tabel 2.3 Nilai Kritik Q/√n
+Sumber: tabel nilai kritik Q/√n pada naskah proposal versi (7), mengacu pada Sri Harto (1993).
+2.3.4	Analisis Frekuensi Curah Hujan
+Analisis frekuensi curah hujan adalah berulangnya curah hujan baik jumlah frekuensi persatuan waktu maupun periode ulangnya. Analisis frekuensi dilakukan untuk memperkirakan intensitas terjadinya suatu kejadian yang terjadi di masa lampau ataupun pada masa mendatang. Analisis frekuensi dapat digunakan untuk memperkirakan besarnya curah hujan rencana dengan periode ulang tertentu berdasarkan distribusi sebaran hujannya baik secara teoritis maupun empiris. Parameter statistik yang diperlukan untuk menghitung analisis frekuensi curah hujan adalah nilai rata-rata (X̄), standar deviasi (S), koefisien variasi (Cv), koefisien kemencengan (Cs), dan koefisien kurtosis (Ck). Parameter-parameter tersebut dapat diperoleh menggunakan persamaan:
+1.	Standar deviasi (standard deviation)
+(2.5)
+2.	Koefisien variasi (coefficient of variation)
+(2.6)
+3.	Koefisien kemencengan (coefficient of skewness)
+(2.7)
+4.	Koefisien kurtosis (coefficient of kurtosis)
+(2.8)
+Dimana :
+Xi	=	Nilai data ke-i
+X̄	=	Nilai rata-rata data
+n	=	Jumlah data
+S	=	Simpangan baku
+Ada beberapa metode yang dapat digunakan untuk menghitung besarnya curah hujan pada kala ulang tertentu di antaranya Metode Normal, Gumbel Tipe I dan Log Pearson Tipe III:
+1.	Distribusi Normal. Distribusi normal sering digunakan dalam analisis hidrologi. Distribusi normal atau kurva normal biasa disebut juga sebagai distribusi Gauss. Kurva frekuensi distribusi normal diperoleh dari persamaan:
+(2.9)
+Dimana :
+X	=	Besaran nilai yang akan terjadi dengan periode ulang T tahun
+X̄	=	Nilai rata-rata X
+σ	=	Simpangan baku X
+tp	=	Faktor frekuensi dari periode ulang tertentu, dapat dilihat pada Tabel 2.4
+Tabel 2.4 Nilai Variabel Reduksi Distribusi Normal (Limantara, 2019)
+Sel berwarna kuning dikoreksi (T = 1,001: tanda minus yang hilang pada naskah lama).
+2.	Distribusi Gumbel Tipe I. Distribusi Gumbel Tipe I dikenal juga sebagai distribusi ekstrem I (extreme type I distribution). Metode distribusi Gumbel umumnya digunakan untuk menganalisis data maksimum, misalnya untuk menganalisis frekuensi banjir. Persamaan garis lurus model matematik distribusi Gumbel Tipe I dapat diperoleh dengan persamaan:
+(2.10)
+(2.11)
+(2.12)
+Dimana :
+Y	=	Nilai variabel reduksi Gumbel Tipe I (Tabel 2.5)
+X̄	=	Nilai rata-rata
+SD	=	Standar deviasi
+XT	=	Curah hujan rencana periode ulang T tahun
+Tabel 2.5 Nilai Variabel Reduksi Gumbel Tipe I (Soewarno, 1995)
+3.	Log Pearson Tipe III. Distribusi Log Pearson Tipe III banyak digunakan dalam analisis hidrologi untuk mengetahui nilai data maksimum (banjir) dan data minimum (debit minimum) menggunakan nilai ekstrem. Setelah mengetahui nilai curah hujan maksimum berdasarkan data curah hujan yang ada, selanjutnya dapat dihitung besarnya curah hujan rencana T tahun dengan prosedur sebagai berikut. Tentukan logaritma dari semua nilai X, kemudian hitung:
+(2.13)
+(2.14)
+(2.15)
+Hitung nilai logaritma hujan rencana dengan periode ulang T tahun:
+(2.16)
+Dimana :
+Log XT	=	Nilai logaritma dari curah hujan rencana periode ulang T tahun
+Log X̄	=	Nilai rata-rata dari Log X
+SD	=	Standar deviasi dari Log X
+Cs	=	Koefisien kemencengan dari Log X
+K	=	Faktor sifat distribusi Log Pearson Tipe III, yaitu fungsi hubungan periode ulang T dan koefisien kemencengan Cs (Tabel 2.6)
+Tabel 2.6 Hubungan Periode Ulang (T) dan Koefisien Kemencengan (Cs) (Limantara, 2019)
+Sel berwarna kuning dikoreksi dari naskah lama berdasarkan pola monoton nilai pada tabel baku (Cs = 3,0, 2 thn; Cs = −0,1, 5, 25, dan 1000 thn; Cs = −0,8, 25 thn; Cs = −2,0, 200 thn). Label kolom "500 thn (0,5%)" pada naskah (7) diganti "200 thn (0,5%)" karena peluang terlampaui 0,5% bersesuaian dengan kala ulang 200 tahun (K = 2,576 pada Cs = 0 sama dengan variabel normal baku untuk peluang 0,5%).
+Untuk menentukan sebaran frekuensi yang sesuai, harus dilakukan pengujian terhadap nilai parameter statistik yang telah dihitung. Uji kecocokan sebaran data dilakukan untuk menguji apakah metode distribusi frekuensi yang dipilih dapat mewakili distribusi statistik sampel data hujan yang ada. Analisis kecocokan sebaran data dapat dilakukan dengan metode Chi-Kuadrat menggunakan persamaan:
+(2.17)
+Dimana :
+χ²	=	Parameter Chi-Kuadrat terhitung
+G	=	Jumlah sub kelompok
+Oi	=	Jumlah nilai pengamatan pada sub kelompok i
+Ei	=	Jumlah nilai teoritis pada sub kelompok i
+Derajat kebebasan uji Chi-Kuadrat dihitung dengan persamaan berikut (Soewarno, 1995; Limantara, 2019). Distribusi dinyatakan selaras apabila χ² hitung tidak melebihi χ² kritis pada derajat kebebasan dan taraf signifikansi α = 5% yang dibaca dari tabel distribusi Chi-Kuadrat. Jumlah parameter P adalah 2 untuk distribusi Normal dan Gumbel Tipe I, dan 3 untuk Log Pearson Tipe III. Sub kelompok (kelas) dapat dibatasi oleh nilai hujan rencana pada kala ulang tertentu, sehingga peluang tiap kelas diketahui dan frekuensi teoritis Ei sama dengan jumlah data dikalikan peluang kelas tersebut.
+(2.17a)
+Dimana :
+dk	=	Derajat kebebasan
+G	=	Jumlah sub kelompok (kelas)
+P	=	Jumlah parameter distribusi yang diuji
+2.3.5	Intensitas Hujan Rencana
+Intensitas hujan rencana dapat didefinisikan sebagai besaran curah hujan yang terjadi secara merata di suatu daerah dengan rentang waktu tertentu yang sesuai dengan waktu konsentrasi kala ulang tertentu. Intensitas hujan dinyatakan sebagai volume curah hujan yang terjadi dalam satuan waktu. Semakin singkat waktu terjadinya hujan berlangsung, maka intensitas terjadinya hujan akan cenderung semakin tinggi dengan periode ulang yang besar. Karena data curah hujan yang digunakan adalah data curah hujan harian, maka perhitungan intensitas curah hujan dapat dilakukan dengan metode Mononobe yang dihitung dengan persamaan (Wesli & Malikussaleh, 2015):
+(2.18)
+Dimana :
+I	=	Intensitas hujan rata-rata selama tc (mm/jam)
+R24	=	Curah hujan harian maksimum dengan periode ulang yang ditentukan (mm)
+tc	=	Durasi hujan, diambil sama dengan waktu konsentrasi (jam)
+Sebelum mencari intensitas hujan dengan metode Mononobe, terlebih dahulu dihitung nilai tc dengan persamaan berikut ; to dihitung dalam menit dengan rumus Kirpich dan tc dinyatakan dalam jam:
+(2.19)
+(2.20)
+dengan to dalam menit, Lo dalam meter, dan S dalam m/m.
+(2.21)
+Dimana :
+tc	=	Waktu konsentrasi (jam)
+to	=	Waktu pengaliran air pada permukaan tanah (menit)
+td	=	Waktu pengaliran pada saluran/pipa (menit)
+v	=	Kecepatan aliran pada saluran/pipa (m/detik)
+Lo	=	Panjang pengaliran pada permukaan dari titik terjauh (m)
+Ld	=	Panjang saluran/pipa (m)
+S	=	Kemiringan permukaan/saluran (m/m)
+2.3.6	Debit Banjir Rencana
+Debit banjir rencana adalah besarnya debit pada suatu periode ulang tertentu yang diperkirakan akan melalui bangunan air yang telah dirancang. Perhitungan debit rencana merupakan tahapan penting dalam prosedur perancangan teknis bangunan air karena nilai dari debit banjir rencana akan menjadi parameter penentu dalam perencanaan dimensi hidrolis suatu sungai atau saluran.
+Debit banjir rencana dapat dihitung dengan Metode Rasional. Metode Rasional umumnya digunakan untuk menghitung debit banjir maksimum pada daerah pengaliran yang terbatas, yaitu DAS atau wilayah pengaliran dengan luas < 300 ha. Selain itu metode ini juga dipakai untuk perencanaan banjir daerah perkotaan dan bangunan air seperti gorong-gorong dan saluran terbuka (Limantara, 2019). Dalam penelitian ini, debit puncak hasil Metode Rasional selanjutnya digunakan sebagai dasar perencanaan dimensi saluran tertutup (pipa) yang mengalirkan limpasan atap menuju kolam retensi. Metode Rasional dirumuskan dalam persamaan:
+(2.22)
+Dimana :
+QT	=	Debit rencana (m³/detik)
+0,278	=	Faktor konversi satuan
+C	=	Koefisien pengaliran sesuai dengan material atap
+I	=	Intensitas hujan (mm/jam)
+A	=	Luas daerah tangkapan/total atap (km²)
+Faktor 0,278 berlaku bila A dinyatakan dalam km². Bila A dalam m² maka persamaan menjadi Q = C · I · A / 3.600.000 (Q dalam m³/detik, I dalam mm/jam).
+Tabel 2.7 Koefisien Limpasan Sesuai Jenis Permukaan Tangkapan
+Sumber: CGWB (2007) dalam Krisnayanti dkk. (2019)
+2.4	Analisis Neraca Air (Water Balance)
+Volume tampungan minimum ditentukan dari defisit kumulatif maksimum antara permintaan dan pasokan sepanjang periode analisis, yang secara grafis diperoleh melalui metode kurva massa (mass curve/diagram Rippl). Metode kurva massa ini telah diterapkan dalam perencanaan sistem pemanenan air hujan untuk menentukan volume tangki penyimpanan berdasarkan keseimbangan pasokan dan kebutuhan air (Dirgawati dkk., 2024). Volume pasokan air hujan yang dapat dipanen pada bulan ke-i dihitung sebagai:
+(2.23)
+Dimana :
+Vsupply,i	=	Volume pasokan bulan ke-i (m³)
+C	=	Koefisien limpasan atap
+Aatap	=	Luas total atap (m²)
+Ri	=	Curah hujan bulanan (mm)
+Volume permintaan air kawasan pada bulan yang sama dihitung dari:
+(2.24)
+Dimana :
+Vdemand,i	=	Volume kebutuhan air bulan ke-i (m³)
+Qharian	=	Kebutuhan air harian total kawasan (m³/hari)
+ti	=	Jumlah hari pada bulan ke-i
+Persamaan kontinuitas tampungan mengikuti prinsip konservasi massa:
+(2.25)
+Dimana :
+Si	=	Tampungan akhir bulan ke-i (m³)
+Ei	=	Kehilangan akibat evaporasi permukaan kolam (m³)
+Nilai Si dibatasi 0 ≤ Si ≤ Vkolam; kelebihan di atas Vkolam dilimpaskan melalui overflow, sedangkan defisit menunjukkan kebutuhan yang tidak terpenuhi oleh pasokan hujan. Metode kurva massa dipilih dalam penelitian ini karena data curah hujan yang tersedia untuk kawasan studi berupa data bulanan, sehingga analisis neraca air pada interval bulanan lebih sesuai diterapkan dibandingkan simulasi kontinu harian yang mensyaratkan ketersediaan data hujan harian dalam rentang panjang. Pemilihan metode analisis dalam perencanaan sumber daya air memang umumnya didasarkan pada pertimbangan ketersediaan data, jenis kepentingan, dan pengalaman (Soemarto, 1999), dan metode Rippl telah lama digunakan sebagai metode grafis untuk menentukan kapasitas tampungan berdasarkan keseimbangan antara ketersediaan dan kebutuhan air (Rippl, 1883).
+Secara matematis, neraca bulanan bersih Ni = Vsupply,i − Vdemand,i − Ei diakumulasikan menjadi nilai kumulatif Ki = ΣNk (k = 1 sampai i). Puncak kumulatif sampai bulan ke-i adalah Sp,i = maks(0; K1, ..., Ki), dan defisit terhadap puncak adalah Sp,i − Ki. Volume kebutuhan penyimpanan Vs adalah defisit kumulatif maksimum, yaitu selisih terbesar antara puncak kumulatif dan lembah yang mengikutinya (metode Rippl):
+(2.26)
+Dimana :
+Vs	=	Volume kebutuhan penyimpanan (m³)
+Sp,i	=	Puncak nilai kumulatif K sampai bulan ke-i (m³)
+Ki	=	Nilai kumulatif neraca bulanan sampai bulan ke-i (m³)
+Nilai Vs hanya terhingga apabila pasokan tahunan melebihi kebutuhan dan evaporasi tahunan; bila neraca tahunan tidak positif, kumulatif terus turun dan kebutuhan tidak dapat dipenuhi seluruhnya oleh pasokan hujan sebesar apa pun volume tampungannya.
+Keandalan sistem (reliability) dievaluasi sebagai persentase periode di mana kebutuhan air dapat dipenuhi seluruhnya:
+(2.27)
+Dimana :
+Nterpenuhi	=	Jumlah bulan di mana kebutuhan air terpenuhi seluruhnya
+Ntotal	=	Jumlah seluruh bulan dalam periode analisis
+Kebutuhan pada bulan ke-i dinyatakan terpenuhi apabila Si−1 + Vsupply,i − Ei ≥ Vdemand,i, dengan Si dihitung dari Persamaan 2.25 dengan batas 0 ≤ Si ≤ Vkolam.
+2.5	Analisis Hidrolika Pipa
+Setelah debit puncak diketahui, langkah selanjutnya adalah analisis hidrolika untuk menentukan diameter pipa yang mampu mengalirkan debit tersebut. Persamaan Manning adalah rumus empiris yang paling umum digunakan untuk menganalisis aliran saluran terbuka atau pipa yang tidak terisi penuh (gravity flow). Persamaan Manning untuk menghitung kecepatan aliran adalah (Yendri, 2023):
+(2.28)
+Debit aliran dalam pipa kemudian dapat dihitung dengan:
+(2.29)
+Dimana :
+Q	=	Debit aliran dalam pipa (m³/detik)
+V	=	Kecepatan aliran rata-rata (m/detik)
+n	=	Koefisien kekasaran Manning
+Rh	=	Jari-jari hidrolis (m), yaitu rasio antara luas penampang basah (Ap) dan keliling basah (Pw). Untuk pipa lingkaran penuh, Rh = D/4
+S	=	Kemiringan (slope) pipa (m/m atau tanpa dimensi)
+Ap	=	Luas penampang aliran (m²)
+Tabel 2.8 Koefisien Kekasaran Manning untuk Berbagai Material Pipa
+Sumber: Chow (1959); Yendri (2023)
+2.6	Analisis Volume Kolam
+Sesuai fungsi ganda kolam sebagai reservoir air baku dan sarana atenuasi (peredaman) limpasan, volume kolam ditentukan berdasarkan dua kriteria yang dievaluasi secara paralel, yaitu volume kebutuhan penyimpanan dan volume atenuasi limpasan.
+Kriteria pertama adalah volume kebutuhan penyimpanan (Vs), yang diperoleh dari analisis neraca air (Subbab 2.4) sebagai defisit kumulatif maksimum pasokan terhadap permintaan. Volume ini merepresentasikan kapasitas tampungan yang dibutuhkan agar kolam mampu menyediakan air baku secara berkelanjutan sepanjang tahun, termasuk pada bulan-bulan kering.
+Kriteria kedua adalah volume atenuasi limpasan (Va), yang diperoleh dari akumulasi debit puncak limpasan hujan rencana selama durasi hujan efektif. Volume ini merepresentasikan kapasitas tampungan yang dibutuhkan agar kolam mampu meredam debit puncak limpasan sehingga tidak membebani sistem drainase eksisting. Debit total yang masuk ke kolam merupakan penjumlahan debit limpasan seluruh blok perumahan:
+(2.30)
+Dengan asumsi konservatif Qout = 0 selama kejadian hujan rencana, volume atenuasi disederhanakan menjadi:
+(2.31)
+Dimana :
+Va	=	Volume atenuasi limpasan (m³)
+Qin	=	Debit total masuk kolam (m³/detik)
+th	=	Durasi hujan efektif (detik), yaitu durasi hujan rencana yang dipakai sebagai dasar volume tampungan atenuasi dan ditetapkan sebagai kriteria desain pada Subbab 3.4.3
+Volume desain kolam ditetapkan sebagai nilai terbesar dari kedua kriteria:
+(2.32)
+Dengan memilih volume terbesar, kolam mampu memenuhi kedua fungsi sekaligus, yaitu sebagai reservoir air baku dan sebagai pengendali limpasan.
+2.7	Dimensi Kolam Retensi dan Tinggi Jagaan (Freeboard)
+Dimensi kolam retensi ditentukan berdasarkan volume tampungan yang telah dihitung. Hubungan antara volume kolam dan dimensi geometrinya dinyatakan sebagai:
+(2.33)
+Dimana :
+V	=	Volume tampungan kolam (m³)
+p	=	Panjang kolam (m)
+l	=	Lebar kolam (m)
+he	=	Kedalaman efektif kolam (m)
+Kedalaman total kolam terdiri atas kedalaman efektif dan tinggi jagaan (freeboard), sehingga dirumuskan sebagai:
+(2.34)
+Dimana :
+htotal	=	Kedalaman total kolam (m)
+he	=	Kedalaman efektif kolam (m)
+hf	=	Tinggi jagaan (freeboard) (m)
+Overflow direncanakan sebagai fasilitas pengaman hidraulik untuk mengalirkan kelebihan air apabila muka air kolam melampaui elevasi maksimum yang diizinkan. Elevasi crest overflow ditentukan pada batas atas muka air rencana dan di bawah batas freeboard, sehingga overflow hanya berfungsi pada kondisi hujan ekstrem di luar hujan rencana dan tidak mengganggu fungsi utama kolam retensi.
+Tinggi jagaan (freeboard) merupakan ruang pengaman yang disediakan di atas muka air rencana kolam retensi untuk mengantisipasi ketidakpastian hidrologi dan fluktuasi muka air. Sebagai contoh, Putra dkk. (2023) menetapkan tinggi jagaan sebesar 0,50 m dalam perencanaan revitalisasi kolam retensi untuk mitigasi banjir. Dalam penelitian ini digunakan tinggi jagaan sebesar 0,50 m sebagai nilai yang cukup aman untuk kolam retensi skala kawasan perumahan.
+BAB III
+METODOLOGI
+3.1	Jenis Penelitian
+Studi ini dikategorikan sebagai studi dengan pendekatan metode kuantitatif. Data curah hujan historis akan diolah secara statistik untuk menentukan intensitas curah hujan rencana dan selanjutnya digunakan dalam perhitungan debit limpasan permukaan. Pemodelan hidrolika juga akan memanfaatkan prinsip-prinsip kuantitatif untuk mendesain dimensi optimal sistem drainase dan kolam retensi berdasarkan volume tampungan yang dibutuhkan. Dengan demikian, data numerik dan analisis statistik akan menjadi fondasi dalam menghasilkan spesifikasi teknis perancangan.
+3.2	Lokasi Perencanaan
+Perencanaan ini akan berfokus pada kawasan perumahan Rajawali Residence yang berada di Jl. Wonodadi 2, Kecamatan Sungai Raya, Kabupaten Kubu Raya yang ditunjukkan pada Gambar 3.1. Kawasan perumahan yang menjadi fokus studi ini terdiri dari 160 unit residensial dengan tipologi bangunan tunggal, yaitu Tipe 36. Perancangan sistem akan dilakukan berdasarkan data dan analisis tersebut.
+Gambar 3.1 Lokasi Perencanaan
+Gambar 3.2 Siteplan
+3.3	Data dan Alat yang Dibutuhkan
+3.3.1	Data Primer
+Data primer yang wajib dikumpulkan dalam studi perencanaan ini meliputi:
+1.	Dimensi saluran drainase eksisting (lebar dan tinggi saluran). Data ini diperoleh melalui pengukuran langsung di lapangan menggunakan meteran.
+2.	Elevasi/beda tinggi antara titik talang atap dan titik rencana kolam retensi. Data ini diperoleh melalui pengukuran langsung di lapangan menggunakan waterpass sederhana.
+3.	Dokumentasi kondisi eksisting kawasan. Data ini diperoleh melalui pemotretan langsung di lapangan.
+3.3.2	Data Sekunder
+Data sekunder yang wajib dikumpulkan dalam studi perencanaan ini meliputi:
+1.	Data curah hujan harian maksimum tahunan selama minimal 10 tahun (dipakai 25 tahun, 2000–2024) dari laporan sinoptik curah hujan 24 jam Stasiun Meteorologi Supadio (WMO 96581) yang diarsipkan pada Integrated Surface Database NOAA (Smith dkk., 2011), dikendalikan mutunya dengan aturan tertulis (Subbab 4.2.1). Data curah hujan bulanan dan evapotranspirasi acuan untuk neraca air diambil dari reanalisis ERA5 (Hersbach dkk., 2020), karena laporan sinoptik tidak mencatat seluruh hari hujan ringan.
+2.	Data evaporasi bulanan untuk menghitung kehilangan air permukaan kolam (Ei). Data ini diperoleh dari BMKG.
+3.	Siteplan dan gambar teknis kawasan perumahan. Data ini diperoleh dari pengembang (developer) Rajawali Residence.
+4.	Standar dan pedoman teknis, meliputi SNI 03-7065-2005, SNI 2415:2016 tentang Tata Cara Perhitungan Debit Banjir Rencana, koefisien kekasaran Manning, dan koefisien Hazen-Williams. Data ini diperoleh dari dokumen standar nasional dan literatur teknis terkait.
+3.3.3	Alat yang Dibutuhkan
+Alat-alat yang akan digunakan dalam penelitian ini meliputi:
+1.	Perangkat keras (hardware):
+a.	Komputer/laptop: untuk pengolahan data, analisis, dan penyusunan laporan.
+b.	Peralatan survei (jika diperlukan): meteran, alat tulis, kamera untuk dokumentasi kondisi lapangan.
+2.	Perangkat lunak (software):
+a.	Pengolah data curah hujan: perangkat lunak spreadsheet (misalnya Microsoft Excel).
+b.	Perangkat lunak desain teknik: Computer-Aided Design (CAD) (AutoCAD) untuk membantu dalam perancangan sistem drainase dan kolam retensi.
+3.4	Analisis Data
+Tahapan analisis dalam perancangan ini dilakukan untuk membuat desain yang akan dibangun yaitu sistem perpipaan, lengkap dengan fasilitas pendukung dan mempertimbangkan berbagai aspek tambahan seperti faktor keselamatan.
+1.	Dalam tahapan analisis hidrologi, fokus utama adalah untuk menentukan besaran debit limpasan yang akan masuk ke dalam sistem yang direncanakan. Proses ini diawali dengan evaluasi data curah hujan dari stasiun pengamatan yang relevan. Analisis pada data hujan ini mencakup uji homogenitas, uji konsistensi, dan analisis frekuensi, serta penentuan intensitas curah hujan rencana untuk periode ulang 10 tahun yang menjadi dasar perhitungan potensi banjir di kawasan studi. Uji kecocokan Chi-Kuadrat dilakukan dengan lima kelas yang dibatasi oleh hujan rencana pada kala ulang 2, 5, 10, dan 25 tahun (Persamaan 2.17 dan 2.17a), dan distribusi dengan χ² hitung terkecil yang lolos uji dipilih sebagai dasar hujan rencana. Perhitungan debit inflow ke dalam sistem drainase dan kolam retensi dilakukan menggunakan Metode Rasional, yang dinilai sesuai untuk daerah tangkapan berskala kecil seperti atap bangunan dan kawasan perumahan. Pemilihan Metode Rasional didasarkan pada kesesuaiannya dengan karakteristik limpasan kawasan terbangun serta keterbatasan ketersediaan data hujan jam-jaman. Intensitas hujan yang digunakan dalam perhitungan debit diperoleh melalui konversi curah hujan harian maksimum menggunakan metode Mononobe. Besaran debit inflow yang dihasilkan selanjutnya digunakan sebagai dasar dalam perencanaan dimensi saluran tertutup berupa pipa dan kapasitas tampungan kolam retensi.
+2.	Analisis hidrolika dalam penelitian ini akan mencakup beberapa aspek penting terkait desain infrastruktur air. Pertama, akan dilakukan analisis dimensi pipa yang meliputi perhitungan parameter seperti koefisien Manning, kemiringan, serta geometri penampang basah (luas dan keliling). Analisis ini bertujuan untuk menentukan kapasitas aliran debit maksimum yang dapat ditampung oleh desain pipa yang direncanakan. Selain itu, perhitungan tinggi jagaan (freeboard) juga akan dilakukan sebagai langkah antisipasi terhadap fluktuasi muka air. Selanjutnya, perencanaan kolam tampungan (retensi) akan didasarkan pada volume limpasan yang telah dihitung sebelumnya, dengan mempertimbangkan dimensi dan efisiensi penampungannya. Sebagai bagian dari sistem pengaman hidraulik, direncanakan pula bangunan pelimpah (overflow) untuk mengendalikan muka air maksimum pada saluran dan kolam retensi. Analisis hidraulika dimulai dengan penentuan karakteristik fisik saluran tertutup berupa pipa dan kapasitas alirannya, yang selanjutnya digunakan dalam perencanaan elemen-elemen struktural sistem, meliputi kolam retensi dan bangunan overflow. Keberadaan overflow dimaksudkan untuk mengalirkan kelebihan debit secara terkendali pada kondisi hujan ekstrem, sehingga sistem tetap beroperasi aman tanpa menimbulkan genangan atau limpasan tidak terkendali di kawasan perumahan.
+3.	Analisis ekonomi teknik dalam penelitian ini meliputi penyusunan Rencana Anggaran Biaya (RAB) untuk menentukan biaya investasi awal sebagai biaya tetap, estimasi biaya operasional dan pemeliharaan yang mencakup konsumsi energi, tenaga kerja, dan biaya perawatan sebagai biaya periodik, serta analisis potensi pendapatan dari retribusi air hujan. Berdasarkan komponen biaya dan pendapatan tersebut, dilakukan analisis untuk menentukan kondisi keseimbangan antara total biaya dan total pendapatan sebagai dasar penilaian kelayakan ekonomi.
+4.	Hasil visual dari perancangan ini akan berupa gambar-gambar teknis yang merinci struktur utama dan bangunan pelengkap pada perencanaan sistem drainase dan kolam retensi.
+3.4.1	Analisis Kebutuhan Air dan Neraca Air
+Tahap ini menjawab kebutuhan penyimpanan air baku kawasan. Kebutuhan air harian total dihitung dari jumlah unit rumah, rata-rata jumlah penghuni per unit, dan standar kebutuhan air domestik (SNI 03-7065-2005):
+(3.1)
+Dimana :
+Qharian	=	Kebutuhan air harian total kawasan (liter/hari)
+nunit	=	Jumlah unit rumah
+njiwa	=	Rata-rata jumlah penghuni per unit
+q	=	Standar kebutuhan air domestik (liter/jiwa/hari)
+Selanjutnya disusun neraca air bulanan dengan membandingkan volume pasokan air hujan (Vsupply) terhadap volume kebutuhan (Vdemand) untuk setiap bulan, menggunakan Persamaan 2.23 hingga 2.25 pada Bab II. Dari neraca kumulatif tersebut, volume kebutuhan penyimpanan (Vs) ditentukan sebagai selisih antara tampungan kumulatif tertinggi dan terendah (Persamaan 2.26), yang secara grafis diperoleh melalui metode kurva massa (diagram Rippl). Keandalan sistem dievaluasi sebagai persentase bulan yang kebutuhannya terpenuhi sepenuhnya (Persamaan 2.27). Tahap ini menjawab Rumusan Masalah mengenai sejauh mana potensi tangkapan air hujan dapat memenuhi kebutuhan air kawasan. Karena air hujan dibatasi untuk kebutuhan non-potabel (Subbab 2.1), neraca air dihitung untuk beberapa fraksi kebutuhan yang dilayani (100%, 70%, 65%, 60%, dan 50%) dengan fraksi desain 65%, yaitu titik tengah rentang 60–70% kebutuhan non-potabel; batas bawah 50% mengacu pada Vovk dkk. (2023). Evaporasi permukaan kolam (Ei) dihitung dari evapotranspirasi acuan (ET0) dikalikan koefisien 1,0 dan luas permukaan kolam hasil desain.
+3.4.2	Perhitungan Debit Limpasan Rencana (Q)
+Debit limpasan dihitung dengan Metode Rasional sesuai Persamaan 2.22:
+dengan QT adalah debit rencana (m³/detik), C koefisien pengaliran sesuai dengan material atap, I intensitas hujan (mm/jam) dari Persamaan 2.18, dan A luas total atap (km²).
+3.4.3	Penentuan Volume Kolam Retensi (Kriteria Ganda)
+Sesuai fungsi ganda kolam sebagai reservoir air baku dan sarana atenuasi limpasan, volume kolam ditentukan berdasarkan dua kriteria. Kriteria pertama adalah volume kebutuhan penyimpanan (Vs) dari analisis neraca air (Subbab 3.4.1). Kriteria kedua adalah volume atenuasi limpasan (Va) yang dihitung dari akumulasi debit puncak selama durasi hujan efektif (Persamaan 2.30 dan 2.31 pada Bab II). Volume desain kolam ditetapkan sebagai nilai terbesar di antara keduanya (Persamaan 2.32 pada Bab II), sehingga kolam mampu memenuhi kedua fungsi sekaligus. Durasi hujan efektif th pada Persamaan 2.31 ditetapkan sebagai kriteria desain sebesar 1 jam dan diuji sensitivitasnya pada 0,5 sampai 3 jam. Dimensi geometri kolam, tinggi jagaan, dan bangunan pelimpah (overflow) kemudian ditentukan berdasarkan volume desain tersebut, dengan mempertimbangkan bahwa kolam dirancang kedap (lined) mengingat kondisi tanah gambut di kawasan studi.
+3.4.4	Perhitungan dan Verifikasi Dimensi Pipa
+Diameter teoritis pipa dihitung menggunakan Persamaan Manning untuk kondisi aliran penuh (full flow) agar memiliki faktor aman.
+(3.2)
+Diameter teoritis (D) dibulatkan ke atas ke ukuran pipa standar yang tersedia di pasaran (misalnya 4", 6", 8"). Setelah diameter komersial (Dkomersial) dipilih, kecepatan aliran aktual di dalam pipa diverifikasi untuk memastikan kinerja yang baik.
+(3.3)
+Dimana :
+V	=	Kecepatan aliran (m/detik)
+Qrencana	=	Debit rencana pada pipa (m³/detik)
+Apipa	=	Luas penampang pipa (m²)
+Perancangan jaringan pipa distribusi bertekanan dan pompa dilakukan pada tahap perancangan teknis (Bab V), sedangkan Bab IV memuat analisis hidrologi dan neraca air.
+Dengan demikian, metodologi penelitian ini telah dirancang secara sistematis untuk menjawab permasalahan yang ada. Rangkaian tahapan yang dimulai dari pengumpulan data primer dan sekunder, dilanjutkan dengan analisis hidrologi untuk menentukan debit puncak rencana, hingga analisis hidraulika untuk menghitung dimensi pipa, membentuk suatu alur kerja yang logis dan dapat dipertanggungjawabkan.
+3.4.5	Perhitungan Break Even Point (BEP)
+Perhitungan Break Even Point (BEP) dalam penelitian ini digunakan untuk mengetahui jangka waktu yang diperlukan agar investasi awal dapat kembali melalui keuntungan bersih yang dihasilkan sistem. Analisis BEP dilakukan dengan pendekatan waktu pengembalian modal (Payback Period), yaitu dengan membandingkan total investasi awal terhadap keuntungan bersih per tahun. Keuntungan bersih diperoleh dari selisih antara total pendapatan retribusi air hujan dan total biaya operasional tahunan. Hasil perhitungan BEP selanjutnya disajikan dalam bentuk tabel kumulatif dan divisualisasikan dalam grafik hubungan antara biaya dan pendapatan terhadap waktu, sehingga dapat ditentukan titik pertemuan antara total biaya dan total pendapatan sebagai titik BEP.
+(3.4)
+3.5	Bagan Alir Perancangan
+Berikut ini merupakan tahapan yang akan dilakukan perancangan dapat dilihat pada Gambar 3.3.
+↓
+↓
+↓
+↓
+↓
+↓
+↓
+↓
+↓
+↓
+↓
+Gambar 3.3 Bagan Alir Perancangan
+DAFTAR PUSTAKA
+Azis, S. U., Nugroho, A. M., & Nikita. (2019). Konservasi dengan rain water harvesting system sebagai solusi efektif bagi bangunan sekolah. Jurnal Pengelolaan Lingkungan Berkelanjutan (JPLB), 3(1), 258–271.
+Badan Pusat Statistik Kabupaten Kubu Raya. (2025). Kabupaten Kubu Raya Dalam Angka 2025.
+Chow, V. T. (1959). Open-Channel Hydraulics. New York: McGraw-Hill.
+Dirgawati, M., Sururi, M. R., & Susanti Ridwan, Y. (2024). Planning of rainwater harvesting systems as an alternative technology for providing clean water in high-density residential areas. Jurnal Teknologi Lingkungan, 25(2), 246–256.
+Hersbach, H., dkk. (2020). The ERA5 global reanalysis. Quarterly Journal of the Royal Meteorological Society, 146(730), 1999–2049.
+Krisnayanti, D. S., Yosafath, Y. T., & Pah, J. J. S. (2019). Efisiensi pemanfaatan air dengan sarana penampungan air hujan pada rumah warga Kota Kupang. Jurnal Teknik Sipil, VIII(2).
+Limantara, I. L. M. (2019). Rekayasa Hidrologi (Edisi Revisi). Yogyakarta: Penerbit Andi.
+Nissa, H., Irsan, R., & Pramulya, M. (2024). Pendeteksian ISA (Impervious Surface Area) sebagai analisis dampak lingkungan di Daerah Kecamatan Sungai Raya, Kabupaten Kubu Raya. Jurnal Ilmu Lingkungan, 22(1), 1–10. https://doi.org/10.14710/jil.22.1.1-10
+Peraturan Menteri Pekerjaan Umum Nomor 12/PRT/M/2014 tentang Penyelenggaraan Sistem Drainase Perkotaan.
+Peraturan Menteri Pekerjaan Umum Nomor 11/PRT/M/2014 tentang Pengelolaan Air Hujan pada Bangunan Gedung dan Persilnya.
+Pratiwi, N. N., Wulandari, A., & Zulfinanda, H. (2021). Analisis sosial ekonomi pembentuk tipologi wilayah peri urban Kecamatan Sungai Raya, Kabupaten Kubu Raya. Jurnal Wilayah dan Lingkungan, 9(3), 306–323. https://doi.org/10.14710/jwl.9.3.306-323
+Putra, F. P., Septiani, H., & Setiawan, D. (2023). Revitalisasi kolam retensi guna mitigasi banjir. Prosiding Seminar Nasional Teknik Sipil 2023, Fakultas Teknik Universitas Muhammadiyah Surakarta (ISSN 2459-9727).
+Putra, S. A. (2022). Analisa dampak sumur bor dalam terhadap muka air tanah dan ekonomi sosial masyarakat. Jurnal Teknik Sipil dan Arsitektur, 27(1), 49–55. https://doi.org/10.36728/jtsa.v27i1.1638
+Ratulangi, R. J., Rondonuwu, S. G., & Sompie, O. B. A. (2025). Analisis potensi land subsidence akibat penurunan muka air tanah di daerah Amurang. Jurnal Teknik Sipil Terapan (JTST), 7(2).
+Rippl, W. (1883). The capacity of storage reservoirs for water supply. Minutes of Proceedings of the Institution of Civil Engineers, 71, 270–278.
+Rosadi, M. I., Hariyani, S., & Ari, I. R. D. (2023). Pemanenan air hujan sebagai alternatif pemenuhan akses air baku air bersih di Kabupaten Trenggalek. Jurnal Serambi Engineering, 8(3), 6591–6600. https://doi.org/10.32672/jse.v8i3.6495
+Saidah, H., Nur, N. K., Rangan, P. R., Mukrim, M. I., Tamrin, Tumpu, M., Nanda, A. R., Mansida, M. J. A., & Sindagamanik, F. D. (2021). Drainase Perkotaan. Yayasan Kita Menulis.
+Smith, A., Lott, N., & Vose, R. (2011). The Integrated Surface Database: Recent developments and partnerships. Bulletin of the American Meteorological Society, 92(6), 704–708.
+SNI 03-7065-2005. Tata Cara Perencanaan Sistem Plambing. Badan Standardisasi Nasional.
+SNI 2415:2016. Tata Cara Perhitungan Debit Banjir Rencana. Badan Standardisasi Nasional.
+Soemarto, C. D. (1999). Hidrologi Teknik (Edisi 2). Jakarta: Erlangga.
+Soewarno. (1995). Hidrologi: Aplikasi Metode Statistik untuk Analisa Data (Jilid 1). Bandung: Nova.
+Sri Harto, Br. (1993). Analisis Hidrologi. Jakarta: Gramedia Pustaka Utama.
+Suwarno. (2017). Bahaya pemompaan air tanah terhadap land subsidence pada lapisan tanah lunak. Prosiding Simposium II – UNIID 2017.
+Vovk, L., Orel, V., & Tarkanii, A. (2023). The harvested rainwater as a source of non-drinking water supply in typical residential microdistricts of Ukrainian cities. Theory and Building Practice, 5(2), 61–68. https://doi.org/10.23939/jtbp2023.02.061
+Warsilan, W. (2019). Dampak perubahan guna lahan terhadap kemampuan resapan air (kasus: Kota Samarinda). Jurnal Pembangunan Wilayah & Kota, 15(1), 70. https://doi.org/10.14710/pwk.v15i1.20713
+Wesli, W., & Malikussaleh, U. (2015). Drainase Perkotaan (unggahan ResearchGate). https://doi.org/10.13140/RG.2.1.3331.8162
+Yendri, O. (2023). Mekanika Fluida dan Hidrolika untuk Teknik Sipil dan Perencanaan. PT Sonpedia Publishing Indonesia.
+Yunianta, A., Riswanto, S., & Wantoro, D. M. (2024). Sistem drainase berkelanjutan pada komplek perumahan. Prosiding Konferensi Nasional Teknik Sipil (KoNTekS) ke-18, Kupang. https://doi.org/10.62603/konteks.v2i5.189
