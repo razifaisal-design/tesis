@@ -4,6 +4,7 @@ Semua perhitungan memakai formula Excel hidup yang saling terhubung antar-sheet
 (input = data mentah dari SQLite + tabel koefisien referensi).
 Sheet desain: Kawasan, Evaporasi, Hidrolika_Pipa (iterasi envelope, Manning
 aliran penuh), Neraca_Air (Rippl 5 fraksi), Desain_Kolam (Va/Vs/dimensi)."""
+import csv
 import json
 import sqlite3
 from openpyxl import Workbook
@@ -20,12 +21,16 @@ rows = list(con.execute("SELECT tahun,bulan,tgl,tanggal,mm FROM curah_hujan_hari
 years = [r[0] for r in con.execute("SELECT DISTINCT tahun FROM curah_hujan_harian ORDER BY tahun")]
 kaw_rows = list(con.execute("SELECT kunci,nilai,satuan,sumber FROM kawasan ORDER BY rowid"))
 par_rows = list(con.execute("SELECT kunci,nilai,satuan,keterangan FROM parameter_desain ORDER BY rowid"))
-evap_rows = list(con.execute("SELECT bulan,evap_mm,e0_mm_hari,t_c,rh_pct,u2_ms,rs_mj,keterangan FROM evaporasi ORDER BY bulan"))
+_cur = con.execute("SELECT * FROM evaporasi ORDER BY bulan")
+EVAP_COLS = [d[0] for d in _cur.description]
+evap_rows = [dict(zip(EVAP_COLS, row)) for row in _cur.fetchall()]
 pipa_rows = list(con.execute("SELECT label,d_mm FROM pipa_standar ORDER BY urut"))
 bulan_rows = list(con.execute("SELECT tahun,bulan,mm,n_hari FROM curah_hujan_bulanan ORDER BY tahun,bulan"))
 hd_rows = list(con.execute("SELECT kunci,nilai,satuan,ket FROM hasil_desain ORDER BY rowid"))
 con.close()
 hd = {k: v for k, v, *_ in hd_rows}
+with open(ROOT / "data" / "processed" / "iklim_harian.csv") as fh:
+    ikl_rows = list(csv.DictReader(fh))
 NROW = len(rows)
 LAST = NROW + 1  # baris terakhir data di Data_Harian
 
@@ -96,6 +101,7 @@ ws_freq = wb.create_sheet("Frekuensi")
 ws_chi = wb.create_sheet("Chi_Kuadrat")
 ws_deb = wb.create_sheet("Debit_Rencana")
 ws_kaw = wb.create_sheet("Kawasan")
+ws_ikl = wb.create_sheet("Iklim_Harian")
 ws_eva = wb.create_sheet("Evaporasi")
 ws_hyp = wb.create_sheet("Hidrolika_Pipa")
 ws_nrc = wb.create_sheet("Neraca_Air")
@@ -399,27 +405,103 @@ for k, f in enumerate(FR_LIST):
         put(ws_kaw, f"D{r}", "<- fraksi desain", font=BOLD)
 widths(ws_kaw, {"A": 26, "B": 34, "C": 15, "D": 60})
 
-# ================= 10. Evaporasi (Penman muka air) =================
-put(ws_eva, "A1", "EVAPORASI MUKA AIR (PENMAN 1948) BULANAN", font=TITLE)
-put(ws_eva, "A2", "Sumber: NOAA ISD Supadio (T, titik embun->RH, angin, tekanan) + NASA POWER CERES (Rs); agregasi harian 2012-2025 oleh src/evaporasi_penman.py. Evaporasi muka air terbuka - BUKAN ET0 rumput (keputusan 1 & 10 REVISI.md).")
-header_row(ws_eva, 4, ["Bulan", "Evaporasi E0 (mm/bulan)", "E0 (mm/hari)", "T (oC)", "RH (%)",
-                       "u2 (m/s)", "Rs (MJ/m2/hari)", "Keterangan"])
-for i, (b, e_mm, e_hari, t_c, rh, u2, rs, ket) in enumerate(evap_rows):
+# ================= 10a. Iklim_Harian (input mentah evaporasi Penman) =================
+put(ws_ikl, "A1", "DATA IKLIM HARIAN - NOAA ISD SUPADIO + NASA POWER (input mentah evaporasi Penman)", font=TITLE)
+put(ws_ikl, "A2", "Sumber: NOAA ISD Supadio WMO 965810 (T, Tmax, Tmin, titik embun Td, angin 10 m, SLP; data/raw/isd_supadio/) + NASA POWER CERES (Rs; data/raw/nasa_power/), disatukan oleh src/evaporasi_penman.py. Periode 2012-01-01 s.d. 2025-08-24; hari tanpa data iklim lengkap dikeluarkan. Kolom D-J = DATA MENTAH (bukan hasil hitung) - dirata-ratakan per bulan kalender oleh formula sheet Evaporasi.")
+header_row(ws_ikl, 3, ["Tanggal", "Tahun", "Bulan", "T (oC)", "Tmax (oC)", "Tmin (oC)", "Td (oC)",
+                       "u10 (m/s)", "SLP (hPa)", "Rs (MJ/m2/hari)"])
+for i, r in enumerate(ikl_rows, start=4):
+    put(ws_ikl, f"A{i}", r["tanggal"], box=True)
+    put(ws_ikl, f"B{i}", int(r["tahun"]), fmt="0", box=True)
+    put(ws_ikl, f"C{i}", int(r["bulan"]), fmt="0", box=True)
+    put(ws_ikl, f"D{i}", float(r["t_c"]), fmt="0.00", box=True)
+    put(ws_ikl, f"E{i}", float(r["tmax_c"]), fmt="0.00", box=True)
+    put(ws_ikl, f"F{i}", float(r["tmin_c"]), fmt="0.00", box=True)
+    put(ws_ikl, f"G{i}", float(r["td_c"]), fmt="0.00", box=True)
+    put(ws_ikl, f"H{i}", float(r["u10_ms"]), fmt="0.00", box=True)
+    put(ws_ikl, f"I{i}", float(r["slp_hpa"]), fmt="0.0", box=True)
+    put(ws_ikl, f"J{i}", float(r["rs_mj"]), fmt="0.00", box=True)
+ws_ikl.freeze_panes = "A4"
+widths(ws_ikl, {"A": 12, "B": 8, "C": 8, "D": 9, "E": 10, "F": 10, "G": 9, "H": 11, "I": 11, "J": 18})
+IKL_LAST = 3 + len(ikl_rows)
+
+# ================= 10b. Evaporasi (Penman 1948 - rantai hitung lengkap) =================
+put(ws_eva, "A1", "EVAPORASI MUKA AIR (PENMAN 1948) - RANTAI HITUNG LENGKAP (SEMUA LANGKAH KALI/BAGI)", font=TITLE)
+put(ws_eva, "A2", "E0 = (delta.Rn/lambda + gamma.Ea)/(delta+gamma) [mm/hari]; evap = E0 x jumlah hari [mm/bulan]. Parameter iklim bulanan = rata-rata harian per bulan kalender 2012-2025 via SUMIFS/COUNTIFS atas sheet Iklim_Harian. Rujukan: Penman (1948) Proc. Royal Society A 193(1032) 120-145; Ra & Rnl FAO-56; koreksi angin 10 m -> 2 m FAO-56. Evaporasi muka air terbuka - BUKAN ET0 rumput (keputusan 1 & 10 REVISI.md).")
+put(ws_eva, "A3", "Asumsi terdokumentasi: G (penyimpanan panas muka air) = 0 untuk skala bulanan; albedo muka air 0,08; ea dibatasi <= es; rasio Rs/Rso dibatasi 0,05-1,00.")
+header_row(ws_eva, 4, ["Konstanta", "Nilai", "Satuan", "Keterangan"])
+for i, (lab, val, sat, ket) in enumerate([
+        ("alfa (albedo muka air)", 0.08, "-", "muka air tenang (Penman 1948)"),
+        ("z (elevasi stasiun)", 3.0, "m", "metadata NOAA ISD Supadio"),
+        ("k_ea (kPa -> mmHg)", 7.5006, "-", "suku aerodinamika Penman"),
+        ("f_u2 (angin 10 m -> 2 m)", 0.748, "-", "FAO-56"),
+        ("phi (lintang Supadio)", -0.1507, "derajat", "metadata NOAA ISD"),
+        ("Gsc (konstanta surya)", 0.0820, "MJ/m2/menit", "FAO-56 eq. 21"),
+        ("G (penyimpanan panas)", 0.0, "MJ/m2/hari", "diabaikan untuk skala bulanan")]):
     r = 5 + i
-    put(ws_eva, f"A{r}", b, fmt="0", box=True)
-    put(ws_eva, f"B{r}", e_mm, font=INPUT, fmt="0.0", fill=YELLOW, box=True)
-    put(ws_eva, f"C{r}", e_hari, font=INPUT, fmt="0.00", box=True)
-    put(ws_eva, f"D{r}", t_c, font=INPUT, fmt="0.0", box=True)
-    put(ws_eva, f"E{r}", rh, font=INPUT, fmt="0", box=True)
-    put(ws_eva, f"F{r}", u2, font=INPUT, fmt="0.00", box=True)
-    put(ws_eva, f"G{r}", rs, font=INPUT, fmt="0.00", box=True)
-    put(ws_eva, f"H{r}", ket, box=True)
-put(ws_eva, "A17", "TOTAL SETAHUN", font=BOLD)
-put(ws_eva, "B17", "=SUM(B5:B16)", font=BOLD, fmt="0.0")
-put(ws_eva, "A18", "RATA-RATA", font=BOLD)
-put(ws_eva, "B18", "=AVERAGE(B5:B16)", font=BOLD, fmt="0.0")
-put(ws_eva, "C18", "dipakai sheet Neraca_Air (INDEX/MATCH kolom bulan)")
-widths(ws_eva, {"A": 8, "B": 21, "C": 12, "D": 9, "E": 9, "F": 11, "G": 17, "H": 80})
+    put(ws_eva, f"A{r}", lab, box=True)
+    put(ws_eva, f"B{r}", val, font=INPUT, fmt="0.0000", fill=YELLOW, box=True)
+    put(ws_eva, f"C{r}", sat, box=True)
+    put(ws_eva, f"D{r}", ket, box=True)
+
+HDR_EVA = ["Bulan", "n hari", "T (oC)", "Tmax (oC)", "Tmin (oC)", "Td (oC)", "u10 (m/s)",
+           "SLP (hPa)", "Rs (MJ/m2/hari)", "es (kPa)", "ea (kPa)", "RH (%)",
+           "delta (kPa/oC)", "gamma (kPa/oC)", "u2 (m/s)", "J (hari ke-)", "dr (-)",
+           "deklinasi (rad)", "omega_s (rad)", "Ra (MJ/m2/hari)", "Rso (MJ/m2/hari)",
+           "Rs/Rso (-)", "Rns (MJ/m2/hari)", "Rnl (MJ/m2/hari)", "Rn (MJ/m2/hari)",
+           "lambda (MJ/kg)", "Ea (mm/hari)", "E0 (mm/hari)", "evap (mm/bulan)", "n hari data"]
+header_row(ws_eva, 13, HDR_EVA)
+
+
+def ikl_range(col):
+    return f"Iklim_Harian!${col}$4:${col}${IKL_LAST}"
+
+
+IKL_CRIT = ikl_range("C")     # kolom bulan (kriteria SUMIFS/COUNTIFS)
+for m in range(1, 13):
+    r = 13 + m
+    ev = evap_rows[m - 1]
+    put(ws_eva, f"A{r}", m, fmt="0", box=True)
+    put(ws_eva, f"B{r}", ev["n_hari"], font=INPUT, fmt="0", box=True)
+    for col, src in [("C", "D"), ("D", "E"), ("E", "F"), ("F", "G"),
+                     ("G", "H"), ("H", "I"), ("I", "J")]:
+        put(ws_eva, f"{col}{r}",
+            f"=SUMIFS({ikl_range(src)},{IKL_CRIT},$A{r})/COUNTIFS({IKL_CRIT},$A{r})",
+            fmt="0.00", box=True)
+    put(ws_eva, f"J{r}", f"=0.6108*EXP(17.27*C{r}/(C{r}+237.3))", fmt="0.0000", box=True)
+    put(ws_eva, f"K{r}", f"=MIN(J{r},0.6108*EXP(17.27*F{r}/(F{r}+237.3)))", fmt="0.0000", box=True)
+    put(ws_eva, f"L{r}", f"=100*K{r}/J{r}", fmt="0.0", box=True)
+    put(ws_eva, f"M{r}", f"=4098*J{r}/(C{r}+237.3)^2", fmt="0.0000", box=True)
+    put(ws_eva, f"N{r}", f"=0.000665*H{r}/10", fmt="0.0000", box=True)
+    put(ws_eva, f"O{r}", f"=G{r}*$B$8", fmt="0.000", box=True)
+    put(ws_eva, f"P{r}", ev["j_hari"], font=INPUT, fmt="0", box=True)
+    put(ws_eva, f"Q{r}", f"=1+0.033*COS(2*PI()*P{r}/365)", fmt="0.0000", box=True)
+    put(ws_eva, f"R{r}", f"=0.409*SIN(2*PI()*P{r}/365-1.39)", fmt="0.0000", box=True)
+    put(ws_eva, f"S{r}", f"=ACOS(-TAN(RADIANS($B$9))*TAN(R{r}))", fmt="0.0000", box=True)
+    put(ws_eva, f"T{r}", f"=(1440/PI())*$B$10*Q{r}*(S{r}*SIN(RADIANS($B$9))*SIN(R{r})"
+                        f"+COS(RADIANS($B$9))*COS(R{r})*SIN(S{r}))", fmt="0.000", box=True)
+    put(ws_eva, f"U{r}", f"=(0.75+0.00002*$B$6)*T{r}", fmt="0.000", box=True)
+    put(ws_eva, f"V{r}", f"=MIN(MAX(I{r}/U{r},0.05),1)", fmt="0.0000", box=True)
+    put(ws_eva, f"W{r}", f"=(1-$B$5)*I{r}", fmt="0.000", box=True)
+    put(ws_eva, f"X{r}", f"=4.903E-9*(((D{r}+273.16)^4+(E{r}+273.16)^4)/2)"
+                        f"*(0.34-0.14*SQRT(K{r}))*(1.35*V{r}-0.35)", fmt="0.000", box=True)
+    put(ws_eva, f"Y{r}", f"=W{r}-X{r}", fmt="0.000", box=True)
+    put(ws_eva, f"Z{r}", f"=2.501-0.00237*C{r}", fmt="0.0000", box=True)
+    put(ws_eva, f"AA{r}", f"=0.26*(1+0.54*O{r})*(J{r}-K{r})*$B$7", fmt="0.000", box=True)
+    put(ws_eva, f"AB{r}", f"=(M{r}*Y{r}/Z{r}+N{r}*AA{r})/(M{r}+N{r})", fmt="0.000", box=True)
+    put(ws_eva, f"AC{r}", f"=AB{r}*B{r}", fmt="0.0", box=True)
+    put(ws_eva, f"AD{r}", ev["n_obs"], font=INPUT, fmt="0", box=True)
+put(ws_eva, "A26", "TOTAL SETAHUN", font=BOLD)
+put(ws_eva, "AC26", "=SUM(AC14:AC25)", font=BOLD, fmt="0.0")
+put(ws_eva, "A27", "RATA-RATA", font=BOLD)
+put(ws_eva, "AB27", "=AVERAGE(AB14:AB25)", font=BOLD, fmt="0.000")
+put(ws_eva, "AC27", "=AVERAGE(AC14:AC25)", font=BOLD, fmt="0.0")
+put(ws_eva, "A29", "Kolom C-I = rata-rata harian (SUMIFS/COUNTIFS atas sheet Iklim_Harian); kolom J-AC = persamaan Penman langkah demi langkah (klik sel untuk melihat formula); kolom AC dipakai sheet Neraca_Air (INDEX/MATCH bulan).", font=FONT)
+put(ws_eva, "A30", "n hari (kolom B) = jumlah hari kalender utk konversi mm/hari -> mm/bulan; n hari data (kolom AD) = jumlah hari observasi terpakai per bulan kalender.", font=FONT)
+widths(ws_eva, {"A": 22, "B": 8, "C": 9, "D": 10, "E": 10, "F": 9, "G": 10, "H": 10, "I": 15,
+                "J": 10, "K": 10, "L": 9, "M": 13, "N": 13, "O": 10, "P": 11, "Q": 9,
+                "R": 14, "S": 13, "T": 15, "U": 16, "V": 10, "W": 16, "X": 16, "Y": 15,
+                "Z": 13, "AA": 11, "AB": 11, "AC": 15, "AD": 12})
 
 # ================= 11. Hidrolika_Pipa (iterasi envelope) =================
 put(ws_hyp, "A1", "HIDROLIKA PIPA INDUK & PER UNIT - ITERASI ENVELOPE (MANNING ALIRAN PENUH)", font=TITLE)
@@ -573,7 +655,7 @@ for k, f in enumerate(FR_LIST):
         put(ws_nrc, f"B{rr}", b, fmt="0", box=True)
         put(ws_nrc, f"C{rr}", mm, fmt="0.0", box=True)
         put(ws_nrc, f"D{rr}", nd, fmt="0", box=True)
-        put(ws_nrc, f"E{rr}", f"=INDEX(Evaporasi!$B$5:$B$16,MATCH(B{rr},Evaporasi!$A$5:$A$16,0))",
+        put(ws_nrc, f"E{rr}", f"=INDEX(Evaporasi!$AC$14:$AC$25,MATCH(B{rr},Evaporasi!$A$14:$A$25,0))",
             fmt="0.0", box=True)
         put(ws_nrc, f"F{rr}",
             f"=Kawasan!$B${KAW_ROW['C_atap']}*Kawasan!$B${KAW_ROW['luas_atap_total']}*C{rr}/1000",

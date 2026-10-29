@@ -81,14 +81,17 @@ parameter_rows = [
 ]
 
 # ---------- 5. evaporasi bulanan (Penman muka air, src/evaporasi_penman.py) ----------
+# kolom = seluruh rantai hitung Penman (utk validasi silang sheet Evaporasi)
 EVAP_CSV = ROOT / "data" / "processed" / "evaporasi_penman.csv"
 assert EVAP_CSV.exists(), f"{EVAP_CSV} tidak ada - jalankan python3 src/evaporasi_penman.py"
-evap_rows = []
 with open(EVAP_CSV) as fh:
-    for row in csv.DictReader(fh):
-        evap_rows.append((int(row["bulan"]), float(row["evap_mm"]), float(row["e0_mm_hari"]),
-                          float(row["t_c"]), float(row["rh_pct"]), float(row["u2_ms"]),
-                          float(row["rs_mj"]), row["keterangan"]))
+    rdr = csv.DictReader(fh)
+    EVAP_COLS = [k for k in rdr.fieldnames if k != "keterangan"]
+    evap_rows = []
+    for row in rdr:
+        vals = [int(row[k]) if k in ("bulan", "n_hari", "j_hari", "n_obs") else float(row[k])
+                for k in EVAP_COLS]
+        evap_rows.append(tuple(vals) + (row["keterangan"],))
 
 # ---------- 6. tabel pipa standar ----------
 pipa_rows = [
@@ -118,8 +121,6 @@ CREATE TABLE curah_hujan_bulanan (
     PRIMARY KEY (tahun, bulan));
 CREATE TABLE kawasan (kunci TEXT PRIMARY KEY, nilai TEXT, satuan TEXT, sumber TEXT);
 CREATE TABLE parameter_desain (kunci TEXT PRIMARY KEY, nilai TEXT, satuan TEXT, keterangan TEXT);
-CREATE TABLE evaporasi (bulan INTEGER PRIMARY KEY, evap_mm REAL, e0_mm_hari REAL,
-    t_c REAL, rh_pct REAL, u2_ms REAL, rs_mj REAL, keterangan TEXT);
 CREATE TABLE pipa_standar (urut INTEGER PRIMARY KEY, label TEXT, d_mm REAL, luas_m2 REAL);
 CREATE TABLE hasil_desain (kunci TEXT PRIMARY KEY, nilai TEXT, satuan TEXT, ket TEXT);
 CREATE TABLE neraca_bulanan (
@@ -128,11 +129,17 @@ CREATE TABLE neraca_bulanan (
     PRIMARY KEY (tahun, bulan, fraksi));
 CREATE TABLE meta (kunci TEXT PRIMARY KEY, nilai TEXT);
 """)
+EVAP_INT = {"n_hari", "j_hari", "n_obs"}
+con.execute("CREATE TABLE evaporasi (%s, keterangan TEXT)" % ", ".join(
+    f"{c} INTEGER PRIMARY KEY" if c == "bulan" else
+    f"{c} INTEGER" if c in EVAP_INT else
+    f"{c} REAL" for c in EVAP_COLS))
 con.executemany("INSERT INTO curah_hujan_harian VALUES (?,?,?,?,?)", rows)
 con.executemany("INSERT INTO curah_hujan_bulanan VALUES (?,?,?,?)", bulan_rows)
 con.executemany("INSERT INTO kawasan VALUES (?,?,?,?)", kawasan_rows)
 con.executemany("INSERT INTO parameter_desain VALUES (?,?,?,?)", parameter_rows)
-con.executemany("INSERT INTO evaporasi VALUES (?,?,?,?,?,?,?,?)", evap_rows)
+con.executemany("INSERT INTO evaporasi VALUES (%s)" % ",".join("?" * (len(EVAP_COLS) + 1)),
+                evap_rows)
 con.executemany("INSERT INTO pipa_standar VALUES (?,?,?,?)",
                 [(u, lab, d, round(math.pi * (d / 1000) ** 2 / 4, 6)) for u, lab, d in pipa_rows])
 con.executemany("INSERT INTO meta VALUES (?,?)", [

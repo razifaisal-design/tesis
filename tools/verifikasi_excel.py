@@ -106,6 +106,36 @@ check("Hidrolika!B78 Q kapasitas talang", cval("Hidrolika_Pipa", "B78"), U["Q_ta
 check("Hidrolika!B79 v talang", cval("Hidrolika_Pipa", "B79"), U["v_talang"], "rel", 1e-6)
 check("Hidrolika!B80 V bak unit", cval("Hidrolika_Pipa", "B80"), U["V_bak"], "abs", 1e-6)
 
+# ---------- C2. sheet Iklim_Harian + Evaporasi: rantai hitung Penman vs DB ----------
+import csv as _csv
+with open(ROOT / "data" / "processed" / "iklim_harian.csv") as _fh:
+    IKL_CSV = list(_csv.DictReader(_fh))
+for _idx in [0, len(IKL_CSV) // 2, len(IKL_CSV) - 1]:
+    _rr = 4 + _idx
+    check(f"Iklim_Harian!A{_rr} tanggal", cval("Iklim_Harian", f"A{_rr}"),
+          IKL_CSV[_idx]["tanggal"], "str")
+    check(f"Iklim_Harian!D{_rr} T", cval("Iklim_Harian", f"D{_rr}"),
+          float(IKL_CSV[_idx]["t_c"]), "abs", 1e-9)
+    check(f"Iklim_Harian!J{_rr} Rs", cval("Iklim_Harian", f"J{_rr}"),
+          float(IKL_CSV[_idx]["rs_mj"]), "abs", 1e-9)
+
+_con = sqlite3.connect(DB)
+_con.row_factory = sqlite3.Row
+EV = {r["bulan"]: r for r in _con.execute("SELECT * FROM evaporasi")}
+_con.close()
+EVA_MAP = [("C", "t_c"), ("D", "tmax_c"), ("E", "tmin_c"), ("F", "td_c"), ("G", "u10_ms"),
+           ("H", "slp_hpa"), ("I", "rs_mj"), ("J", "es_kpa"), ("K", "ea_kpa"), ("L", "rh_pct"),
+           ("M", "delta"), ("N", "gamma"), ("O", "u2_ms"), ("Q", "dr"), ("R", "deklinasi"),
+           ("S", "omega_s"), ("T", "ra_mj"), ("U", "rso_mj"), ("V", "ratio"), ("W", "rns_mj"),
+           ("X", "rnl_mj"), ("Y", "rn_mj"), ("Z", "lam"), ("AA", "ea_pen_mm"),
+           ("AB", "e0_mm_hari"), ("AC", "evap_mm")]
+for m in range(1, 13):
+    rr = 13 + m
+    check(f"Evaporasi!P{rr} J perwakilan", cval("Evaporasi", f"P{rr}"), EV[m]["j_hari"], "abs", 0)
+    check(f"Evaporasi!AD{rr} n obs", cval("Evaporasi", f"AD{rr}"), EV[m]["n_obs"], "abs", 0)
+    for col, dk in EVA_MAP:
+        check(f"Evaporasi!{col}{rr} {dk}", cval("Evaporasi", f"{col}{rr}"), EV[m][dk], "rel", 1e-6)
+
 # ---------- D. sheet Desain_Kolam ----------
 K = HD["kolam"]
 he = float(K["he"])

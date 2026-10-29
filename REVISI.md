@@ -9,8 +9,8 @@ sebagaimana dicatat.
 
 | No | Topik | Keputusan | Status |
 |---|---|---|---|
-| 1 | Evaporasi kolam | Dikunci memakai **metode Penman**; hujan langsung di permukaan kolam dimasukkan | **DIEKSEKUSI** — Penman 142,3-166,2 mm/bulan + P×Ap; iterasi Vs↔Ap konvergen |
-| 2 | `Ap_kolam = 1.200 m²` | **Dihapus** | **DIEKSEKUSI** — dihapus dari DB; B9 Desain_Kolam = hasil iterasi (5.292,5 m²) |
+| 1 | Evaporasi kolam | Dikunci memakai **metode Penman**; hujan langsung di permukaan kolam dimasukkan | **DIEKSEKUSI** — Penman 142,6–166,2 mm/bulan + P×Ap; rantai hitung live di workbook; iterasi Vs↔Ap konvergen |
+| 2 | `Ap_kolam = 1.200 m²` | **Dihapus** | **DIEKSEKUSI** — dihapus dari DB; B9 Desain_Kolam = hasil iterasi (5.256,25 m²) |
 | 3 | Data harian kosong | Tetap **NULL**, tidak diisi; asistensi dosen | Berlaku sekarang |
 | 4 | `hasil_validasi.json` | Field lama `to/td/tc/I/Q` dihapus/ditandai; sheet `Debit_Rencana` & diagram disinkronkan | **DIEKSEKUSI** — field dihapus; Debit_Rencana = ringkasan tautan silang |
 | 5 | Uji chi-kuadrat | Pakai **hitungan terakhir** (bin 0,50/0,20/0,10/0,06/0,14; E ≥ 5) | **DIEKSEKUSI** — χ² = 2,3673; LP3 terpilih; uji gabungan E≥5 di chi.e5 |
@@ -38,10 +38,13 @@ sebagaimana dicatat.
   - dengan hujan langsung di kolam, iterasi konvergen pada **Vs ≈ 15.085 m³**, Ap ≈ 5.041 m², kolam **71 × 71 × 3,0 m**;
   - sebagai pembanding, dengan ET0 ≈ 117 mm/bulan: Vs ≈ 11.208 m³, kolam 61 × 61,5 × 3,0 m.
 - **Status:** **DIEKSEKUSI** (sesi Paket A). `src/evaporasi_penman.py` menghitung
-  Penman muka air harian 2012–2025 (NOAA ISD Supadio + NASA POWER Rs) →
-  **142,3–166,2 mm/bulan** (rata-rata 154,3), tabel `evaporasi` di DB terisi,
-  hujan langsung `P × Ap` masuk neraca sebagai pemasukan, iterasi Vs ↔ Ap
-  **konvergen** (5 langkah, Ap = 5.292,5 m², Vs = 15.823,6 m³).
+  Penman muka air dari **parameter iklim bulanan** 2012–2025 (NOAA ISD Supadio +
+  NASA POWER Rs) → **142,6–166,2 mm/bulan** (total 1.847,2 mm/tahun); tabel
+  `evaporasi` di DB memuat seluruh kolom rantai hitung; hujan langsung `P × Ap`
+  masuk neraca sebagai pemasukan; iterasi Vs ↔ Ap **konvergen** (5 langkah,
+  Ap = 5.256,25 m², Vs = 15.751,7 m³). **Transparansi:** seluruh langkah kali/bagi
+  tampil sebagai kolom formula di sheet `Evaporasi` (data mentah harian di sheet
+  `Iklim_Harian`) — setiap kolom × 12 bulan divalidasi silang vs DB (342 cek).
 
 ## 2. `Ap_kolam = 1.200 m²` dihapus
 
@@ -54,7 +57,7 @@ sebagaimana dicatat.
   4. `tools/verifikasi_excel.py` — cek `B42` disesuaikan.
 - **Status:** **DIEKSEKUSI** — `Ap_kolam` dihapus dari `build_db.py` dan
   `analisis_desain.py`; `Desain_Kolam!B9` diisi dari tabel `hasil_desain`
-  (Ap iterasi 5.292,5 m²); cek B42 kini memverifikasi konvergensi iterasi secara live.
+  (Ap iterasi 5.256,25 m²); cek B42 kini memverifikasi konvergensi iterasi secara live.
 
 ## 3. Data harian kosong tetap NULL
 

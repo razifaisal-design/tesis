@@ -3,15 +3,41 @@
 Dokumen keadaan proyek untuk dilanjutkan sesi berikutnya. Jangan mulai dari nol —
 baca bagian "Status" dan "Pekerjaan berikutnya" dulu.
 
-> **⚠️ SESI 29 OKT 2026 (LANJUTAN, PAKET A SELESAI) — BACA BAGIAN INI DULU.**
-> **Paket A sudah dieksekusi penuh**: evaporasi kini **Penman muka air + hujan langsung
-> di kolam** (bukan ET0 120 mm/bulan), `Ap_kolam=1.200` dihapus, field lama
-> `to/td/tc/I/Q` dibersihkan, chi-kuadrat diperbaiki (χ² ≈ 2,37). Pipeline penuh +
-> `verifikasi_excel.py` **LULUS (6.807 cek, 0 gagal)**. Angka desain berubah:
-> **Vs = 15.823,6 m³, kolam 72,5 × 73,0 × 3,0 m, reliability 65% = 100%**.
-> Rincian keputusan di `REVISI.md`; data iklim NOAA ISD Supadio 2012–2025 ada di
-> `data/raw/isd_supadio/` (di-ignore Git) — output Penman ter-commit di
-> `data/processed/evaporasi_penman.csv/.json`.
+> **⚠️ SESI 29 OKT 2026 (LANJUTAN, PAKET A SELESAI + TRANSPARANSI EVAPORASI) — BACA DULU.**
+> **Paket A selesai** (Penman muka air + hujan langsung kolam; `Ap_kolam=1.200` dihapus;
+> field lama `to/td/tc/I/Q` dibersihkan; chi-kuadrat diperbaiki χ² ≈ 2,37) dan **seluruh
+> rantai hitung evaporasi kini tampil LIVE di workbook** — sheet `Iklim_Harian`
+> (data mentah harian) + sheet `Evaporasi` (SEMUA langkah kali/bagi Penman sebagai
+> kolom formula, bisa diaudit dosen). Pipeline penuh + `verifikasi_excel.py`
+> **LULUS (7.152 cek, 0 gagal)** termasuk 342 cek rantai Penman. Angka desain final:
+> **Vs = 15.751,7 m³, kolam 72,5 × 72,5 × 3,0 m, reliability 65% = 99,4%**.
+> Data iklim NOAA ISD Supadio 2012–2025 di `data/raw/isd_supadio/` (di-ignore Git);
+> output ter-commit: `data/processed/iklim_harian.csv` + `evaporasi_penman.csv/.json`.
+> **Pekerjaan berikutnya = TAHAP 5** (lihat bagian bawah).
+
+## SESI 29 OKT 2026 (LANJUTAN-2) — TRANSPARANSI EVAPORASI DI WORKBOOK
+
+Permintaan: angka evaporasi Penman tidak boleh muncul begitu saja — semua langkah
+kali/bagi harus tampil di sheet, ter-link, berformula, bisa divalidasi dosen.
+
+1. **Sheet `Iklim_Harian` (baru, 15 sheet total):** data mentah harian NOAA ISD
+   Supadio (T, Tmax, Tmin, Td, u10, SLP) + NASA POWER (Rs), 4.977 hari
+   2012-01-01 s.d. 2025-08-24 (`data/processed/iklim_harian.csv`, ter-commit).
+2. **Sheet `Evaporasi` dirombak total:** blok konstanta (alfa, z, k_ea, f_u2, phi,
+   Gsc, G — dirujuk sel formula), parameter bulanan via SUMIFS/COUNTIFS atas
+   `Iklim_Harian`, lalu **kolom formula langkah demi langkah**: es, ea, RH, delta,
+   gamma, u2, J, dr, deklinasi, omega_s, Ra, Rso, Rs/Rso, Rns, Rnl, Rn, lambda,
+   Ea, E0, evap mm/bulan. Tidak ada angka hasil hitung yang di-hardcode.
+3. **Metode diseragamkan:** Python (`src/evaporasi_penman.py`) kini menghitung
+   Penman dari **parameter iklim bulanan** (rata-rata harian per bulan kalender) —
+   rute yang sama persis dengan formula Excel; nilai harian dibulatkan 2 desimal
+   di sumbernya supaya agregasi identik. `build_db.py` membawa seluruh kolom
+   rantai ke tabel `evaporasi`.
+4. **Validasi silang:** `verifikasi_excel.py` memeriksa **setiap kolom rantai ×
+   12 bulan** (342 cek) + spot-check `Iklim_Harian` terhadap CSV → LULUS.
+5. Angka akibat rute bulanan (sedikit berubah vs rute harian): evaporasi
+   **142,6–166,2 mm/bulan** (total 1.847,2 mm/tahun); iterasi Vs↔Ap tetap
+   konvergen 5 langkah dengan titik tetap **Ap = 5.256,25 m²**.
 
 ## SESI 29 OKT 2026 (LANJUTAN) — EKSEKUSI PAKET A
 
@@ -190,9 +216,9 @@ dihapus. Repo sudah dipush ke **https://github.com/razifaisal-design/tesis**
 |---|---|---|---|
 | 1 | IV | Fondasi & verifikasi rumus OMML + skema database | SELESAI |
 | 2 | IV | Mesin desain (analisis_desain.py) + 5 sheet Excel baru + recalc + verifikasi | SELESAI |
-| 3 | IV | Visualisasi hasil siap naskah (grafik Bab 4) | BERIKUTNYA |
-| 4 | IV | Analisis sensitivitas + pembahasan + verifikasi asumsi lapangan | — |
-| 5 | IV | Naskah Bab 4 final (docx) + lampiran | — |
+| 3 | IV | Visualisasi hasil siap naskah (grafik Bab 4) | dikerjakan bersama Tahap 5 |
+| 4 | IV | Analisis sensitivitas + pembahasan + verifikasi asumsi lapangan | dikerjakan bersama Tahap 5 |
+| 5 | IV | Naskah Bab 4 final (docx) + lampiran | **BERIKUTNYA (handoff sesi ini)** |
 | 1 | V | Jaringan distribusi bertekanan + pompa | — |
 | 2 | V | Ekonomi teknik: RAB, operasional, retribusi, BEP | — |
 | 3 | V | TAHAP TEST — dashboard web lokal (pipeline + test suite) | — |
@@ -224,16 +250,16 @@ dihapus. Repo sudah dipush ke **https://github.com/razifaisal-design/tesis**
 - File xlsx di-recalc dengan LibreOffice (cached values dibakar, formula tetap utuh),
   hasil recalc divalidasi ulang terhadap DB (lolos) lalu menggantikan file asli.
 
-### Angka desain terakhir (Paket A — Penman + hujan kolam; TERVERIFIKASI 6.807 cek)
+### Angka desain terakhir (Paket A — Penman + hujan kolam; TERVERIFIKASI 7.152 cek)
 - R24 (T=10 th, LP3) = 163,236 mm; to = 0,154 mnt; td = 3,25 mnt; tc = 0,0568 jam; I = 383,15 mm/jam
 - Q desain (maks iterasi) = 0,8862 m3/dtk; D teoritis = 810 mm -> **DN900**;
   v = 1,393 m/dtk; kapasitas Manning penuh = 1,1718 m3/dtk (AMAN)
 - Q per unit = 5,54 l/dtk -> pipa DN160; talang 0,15x0,10 m kapasitas 10,82 l/dtk; bak 0,5 m3
-- Evaporasi Penman muka air = 142,3-166,2 mm/bulan (rata-rata 154,3 mm/bulan; NOAA ISD + NASA POWER)
-- Iterasi Vs<->Ap **KONVERGEN** 5 langkah (Ap 1.072,5 -> 4.257,5 -> 5.041 -> 5.220 -> 5.292,5 m2)
-- Va (th=1 jam) = 3.190,4 m3; Vs = 15.823,6 m3 -> **V desain = 15.823,6 m3**
-  -> kolam 72,5 x 73,0 x 3,0 m (+freeboard 0,5 m = 3,5 m); Ap = 5.292,5 m2
-- Reliability: f=1,00: 88,7% | 0,70: 98,8% | **0,65: 100%** | 0,60: 100% | 0,50: 100%
+- Evaporasi Penman muka air = 142,6-166,2 mm/bulan (total 1.847,2 mm/tahun; NOAA ISD + NASA POWER; rantai hitung live di sheet Evaporasi)
+- Iterasi Vs<->Ap **KONVERGEN** 5 langkah (Ap 1.072,5 -> 4.257,5 -> 5.041 -> 5.220 -> 5.256,25 m2)
+- Va (th=1 jam) = 3.190,4 m3; Vs = 15.751,7 m3 -> **V desain = 15.751,7 m3**
+  -> kolam 72,5 x 72,5 x 3,0 m (+freeboard 0,5 m = 3,5 m); Ap = 5.256,25 m2
+- Reliability: f=1,00: 88,7% | 0,70: 98,8% | **0,65: 99,4%** | 0,60: 100% | 0,50: 100%
 
 ## Peta file (setelah restukturisasi akhir Tahap 2)
 
@@ -244,12 +270,13 @@ Struktur repo standar riset Python (detail di `README.md`):
   uji, frekuensi, chi-kuadrat -> hasil_validasi.json), `analisis_desain.py`
   (-> hasil_desain.json + tabel hasil_desain/neraca_bulanan);
   `legacy/analisis_hujan.py` (sudah digantikan analisis2.py)
-- `tools/` — `buat_excel.py` (workbook 14 sheet formula hidup), `buat_diagram.py`
+- `tools/` — `buat_excel.py` (workbook 15 sheet formula hidup, termasuk Iklim_Harian
+  + rantai hitung Penman langkah demi langkah di sheet Evaporasi), `buat_diagram.py`
   (-> figures/diagram-alur-hidrologi.html), `verifikasi_excel.py` (recalc + verifikasi
   silang, JALANKAN TERAKHIR), `recalc_excel.py` (bake cached values via LibreOffice),
   generator docx dari proyek lama
 - `data/processed/` — SUMBER KEBENARAN: `hidrologi.db` + `hasil_validasi.json` +
-  `hasil_desain.json` + `evaporasi_penman.csv/.json` +
+  `hasil_desain.json` + `iklim_harian.csv` + `evaporasi_penman.csv/.json` +
   `Perhitungan_Hidrologi.xlsx` (semua ter-commit Git)
 - `data/raw/` — data mentah & arsip ~1,2 GB (DI-IGNORE git; ada README di dalamnya):
   curah hujan BWSK, `isd_supadio/` (NOAA ISD 2012-2025), `nasa_power/` (NASA POWER Rs),
@@ -357,11 +384,15 @@ Konsekuensi:
 6. CSV NOAA ISD 2025 hanya sampai 24 Agu 2025 (arsip NOAA) — bila kelak arsip
    lengkap, jalankan ulang `src/evaporasi_penman.py` (dampak kecil pada klimatologi).
 
-## Pekerjaan berikutnya: BAB 4 TAHAP 3 — Visualisasi hasil siap naskah
+## Pekerjaan berikutnya: TAHAP 5 — Naskah Bab 4 final (docx) + lampiran
 
-Tujuan: grafik + tabel siap tempel untuk Bab IV, angka 100% ditarik dari
-`hasil_validasi.json`, `hasil_desain.json`, dan tabel `neraca_bulanan`/`hasil_desain`
-di DB (semua sudah tervalidasi tahap 2).
+(Grafik Tahap 3 dan pembahasan Tahap 4 dikerjakan sebagai bagian dari Tahap 5:
+buat grafiknya dulu untuk ditempel, lalu naskah final.)
+
+Tujuan: naskah Bab IV final + lampiran; semua angka ditarik dari
+`hasil_validasi.json`, `hasil_desain.json`, tabel `neraca_bulanan`/`hasil_desain`/
+`evaporasi` di DB, dan workbook `Perhitungan_Hidrologi.xlsx` (tervalidasi 7.152 cek,
+rantai hitung Penman tampil live di sheet Iklim_Harian + Evaporasi).
 
 Daftar grafik yang dibuat (usulan, boleh disesuaikan):
 1. Curah hujan tahunan (total) + X maks harian per tahun — dari statistik/DB.
@@ -369,19 +400,24 @@ Daftar grafik yang dibuat (usulan, boleh disesuaikan):
 3. Kurva frekuensi XT: Normal, Gumbel, LP3 + titik observasi + penanda R24 T=10 th.
 4. Kurva massa Rippl: K kumulatif fraksi desain (65%) + penanda Vs, Va, dan V desain;
    opsional overlay 5 fraksi.
-5. Neraca bulanan fraksi desain: supply vs (demand + evaporasi) per bulan + garis kumulatif.
+5. Neraca bulanan fraksi desain: supply atap + hujan kolam vs demand + evaporasi
+   per bulan + garis kumulatif.
 6. Sensitivitas: (a) Vs vs fraksi kebutuhan; (b) Va vs th (0,5-3 jam);
-   (c) Vs pass-1/pass-2/pass-3 (umpan balik evaporasi).
+   (c) iterasi konvergensi Vs<->Ap (BUKAN pass-1/2/3 — sudah diganti Paket A).
 7. Hidrolika pipa: Q per iterasi (menunjukkan osilasi + envelope) + Q desain vs
    kapasitas DN900.
+8. (Opsional) evaporasi Penman bulanan: batang E0 mm/bulan + komponen iklim.
 
-Checklist tahap 3:
+Checklist tahap 5:
 - [ ] Buat `tools/buat_grafik.py` (baca DB/JSON, jangan hitung ulang rumus)
 - [ ] Output PNG dpi 300 (+ SVG opsional) ke `figures/`, penomoran mengikuti
       urutan Bab 4 (mis. gambar4-1.png ...)
 - [ ] Semua angka pada grafik identik dengan json/DB (sudah tervalidasi)
 - [ ] Legenda/label Bahasa Indonesia, satuan lengkap, konsisten dgn sheet Excel
-- [ ] (Jika data ERA5 sudah ada) tambah skenario evaporasi nyata + bandingkan
+- [ ] Pembahasan (Tahap 4): sensitivitas th/fraksi/evaporasi + verifikasi asumsi
+      lapangan (flag #3) + konsistensi sumber data (flag #4)
+- [ ] Naskah Bab 4 final docx + lampiran — ikuti `TEMUAN GLM-5.3.md`
+      (Larangan A/B/C, tabel identik dengan Excel, kutipan keputusan, pedoman Untan)
 - [ ] Jalankan ulang pipeline + `verifikasi_excel.py` untuk pastikan tidak ada regresi
 - [ ] Perbarui tabel status di dokumen HANDOFF.md ini
 
