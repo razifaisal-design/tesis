@@ -1,0 +1,128 @@
+{
+ "kebutuhan": {
+  "Q_harian_100pct": 76.8,
+  "fraksi": 0.65,
+  "Q_desain_harian": 49.92,
+  "jam_operasi": 8.0,
+  "Q_pompa": 6.24
+ },
+ "layout": {
+  "L_induk": 330.0,
+  "n_seg_induk": 10,
+  "L_seg": 33.0,
+  "n_lateral": 5,
+  "lebar_kawasan": 85.78,
+  "L_sambungan_unit": 12.0,
+  "L_total_pipa": 431.8
+ },
+ "segmen": [
+  {
+   "segmen": "INDUK_01",
+   "L_m": 33.0,
+   "Q_l_det": 0.867,
+   "D_mm": 32,
+   "v_ms": 1.078,
+   "hf_m": 1.517
+  },
+  {
+   "segmen": "INDUK_02",
+   "L_m": 33.0,
+   "Q_l_det": 0.693,
+   "D_mm": 25,
+   "v_ms": 1.412,
+   "hf_m": 3.338
+  },
+  {
+   "segmen": "INDUK_03",
+   "L_m": 33.0,
+   "Q_l_det": 0.52,
+   "D_mm": 25,
+   "v_ms": 1.059,
+   "hf_m": 1.959
+  },
+  {
+   "segmen": "INDUK_04",
+   "L_m": 33.0,
+   "Q_l_det": 0.347,
+   "D_mm": 25,
+   "v_ms": 0.706,
+   "hf_m": 0.925
+  },
+  {
+   "segmen": "INDUK_05",
+   "L_m": 33.0,
+   "Q_l_det": 0.347,
+   "D_mm": 25,
+   "v_ms": 0.706,
+   "hf_m": 0.925
+  },
+  {
+   "segmen": "INDUK_06",
+   "L_m": 33.0,
+   "Q_l_det": 0.347,
+   "D_mm": 25,
+   "v_ms": 0.706,
+   "hf_m": 0.925
+  },
+  {
+   "segmen": "INDUK_07",
+   "L_m": 33.0,
+   "Q_l_det": 0.347,
+   "D_mm": 25,
+   "v_ms": 0.706,
+   "hf_m": 0.925
+  },
+  {
+   "segmen": "INDUK_08",
+   "L_m": 33.0,
+   "Q_l_det": 0.347,
+   "D_mm": 25,
+   "v_ms": 0.706,
+   "hf_m": 0.925
+  },
+  {
+   "segmen": "INDUK_09",
+   "L_m": 33.0,
+   "Q_l_det": 0.347,
+   "D_mm": 25,
+   "v_ms": 0.706,
+   "hf_m": 0.925
+  },
+  {
+   "segmen": "INDUK_10",
+   "L_m": 33.0,
+   "Q_l_det": 0.347,
+   "D_mm": 25,
+   "v_ms": 0.706,
+   "hf_m": 0.925
+  },
+  {
+   "segmen": "LATERAL",
+   "L_m": 85.78,
+   "Q_l_det": 0.347,
+   "D_mm": 25,
+   "v_ms": 0.706,
+   "hf_m": 2.404
+  },
+  {
+   "segmen": "SAMBUNGAN_UNIT",
+   "L_m": 12.0,
+   "Q_l_det": 0.011,
+   "D_mm": 25,
+   "v_ms": 0.022,
+   "hf_m": 0.001
+  }
+ ],
+ "pompa": {
+  "Q": 6.24,
+  "H_kerja": 22.26,
+  "H_terpilih": 28,
+  "lift_statik": 5.0,
+  "los_gesek": 15.69,
+  "minor": 1.57,
+  "P_shaft": 688,
+  "P_motor": 740,
+  "unit": 2,
+  "tipe": "sentrifugal permukaan self-priming"
+ }
+}

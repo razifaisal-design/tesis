@@ -283,7 +283,7 @@ dihapus. Repo sudah dipush ke **https://github.com/razifaisal-design/tesis**
 | 3 | IV | Visualisasi hasil siap naskah (grafik Bab 4) | dikerjakan bersama Tahap 5 |
 | 4 | IV | Analisis sensitivitas + pembahasan + verifikasi asumsi lapangan | dikerjakan bersama Tahap 5 |
 | 5 | IV | Naskah Bab 4 final (docx) + lampiran | **NASKAH SELESAI** (`manuscript/BAB_IV_HASIL_DAN_PEMBAHASAN.docx`); lampiran menyusul |
-| 1 | V | Jaringan distribusi bertekanan + pompa | — |
+| 1 | V | Jaringan distribusi bertekanan + pompa | **SELESAI (komputasi)** — `src/jaringan_distribusi.py`, `hasil_jaringan.json`; angka menunggu asistensi (jam operasi, elevasi bak) |
 | 2 | V | Ekonomi teknik: RAB, operasional, retribusi, BEP | — |
 | 3 | V | TAHAP TEST — dashboard web lokal (pipeline + test suite) | — |
 
@@ -361,6 +361,7 @@ python src/evaporasi_penman.py    # (hanya bila data iklim berubah) -> data/proc
 python src/build_db.py            # raw -> data/processed/hidrologi.db (fallback: data/sample/)
 python src/analisis2.py
 python src/analisis_desain.py
+python src/jaringan_distribusi.py   # Bab V Tahap 1: jaringan tekan + pompa (jalankan lagi setelah build_db)
 python tools/buat_diagram.py
 python tools/buat_excel.py
 python tools/verifikasi_excel.py  # WAJIB LULUS (exit code 0)
@@ -457,6 +458,11 @@ Konsekuensi:
      (C) kolam terdistribusi (FASOS + lahan tambahan di beberapa titik, total V tetap 15.751,7 m³);
      (D) kombinasi B + tambah he/bebas evap. Keputusan → dokumentasi di HANDOFF.md +
      konsekuensi (pipeline ulang + verifikasi) bila desain berubah.
+   - **KEPUTUSAN USER (30 Okt 2026): opsi di atas DITUNDA untuk dibahas dengan dosen
+     dulu (asistensi).** Selama menunggu: workbook/DB/naskah TIDAK diubah; angka desain
+     tetap fraksi 65% (Vs = 15.751,7 m³). Bila dosen memilih salah satu opsi → eksekusi
+     konsekuensinya (untuk B/C/D: pipeline penuh + `verifikasi_excel.py` LULUS +
+     regenerasi naskah Bab IV + sinkron CAD).
 4. **Housekeeping SELESAI**: lock `~$oposal Tesis (claude) (Revisi Antigravity) 2.docx`
    dihapus; `README.md` diperbarui (angka final: Vs 15.751,7 m³, kolam 72,5 × 72,5 × 3,0 m,
    evaporasi Penman, verifikasi 7.152 cek; isu terbuka disesuaikan).
@@ -468,6 +474,36 @@ Konsekuensi:
    - Koordinat (GPS/WGS84): titik inlet kolam, outlet pelimpah, ujung outfall;
      lampirkan ke lampiran survei. Hasil → parameter_desain bila menyimpang (>10%:
      pipeline ulang + verifikasi).
+
+## SESI 30 OKT 2026 (TAHAP 6 LANJUTAN) — BAB V TAHAP 1: JARINGAN DISTRIBUSI + POMPA
+
+Lingkup sesuai `HANDOFF_TAHAP_6.md` butir 6 (layout, tekanan/los, pompa →
+`parameter_desain` + skrip `src/`).
+
+1. **`src/jaringan_distribusi.py` (BARU):** mesin desain jaringan bertekanan
+   kolam → 160 unit. Baca DB (kawasan/parameter_desain/hasil_desain), hitung
+   Hazen-Williams (PVC C=140), pilih DN (pipa tekan, kriteria v 0,6–1,5 m/s),
+   titik kerja pompa + daya. Output: tabel `jaringan_distribusi` (13 segmen),
+   tabel `pipa_tekan` (DN25–DN160), 16 baris baru `parameter_desain`
+   (asumsi + spesifikasi pompa — semua terdokumentasi kolom `ket`),
+   `data/processed/hasil_jaringan.json` (TER-COMMIT).
+2. **Hasil:** Q pompa **6,24 m³/jam** (kebutuhan 49,92 m³/hari ÷ 8 jam operasi);
+   H kerja **22,26 m** (statis 5,0 + los gesek 15,69 + minor 1,57) → H terpilih
+   **28 m** (margin 20%); motor **740 W** (P_shaft 688 W, η 0,55), **2 unit**
+   (1 aktif + 1 cadangan), sentrifugal permukaan self-priming di rumah pompa FASOS.
+   Debit jalur: induk DN32 (v 1,08 m/dtk) → lateral DN25 → sambungan unit DN25;
+   L total pipa 431,8 m.
+3. **Asumsi yang masuk `parameter_desain` (WAJIB disepakati dosen/diverifikasi
+   lapangan):** jam operasi 8 jam/hari; elevasi bak unit +2,5 m (tower tipe 36);
+   tekanan sisa 2,0 m; muka air kolam −0,5 m; v ekonomis 0,6–1,5 m/s.
+4. **Regresi LULUS** — `verifikasi_excel.py` tetap LULUS setelah penambahan
+   tabel (workbook/neraca tidak berubah). Urutan pipeline kini:
+   ... `analisis_desain.py` → **`jaringan_distribusi.py`** → `buat_diagram.py` → ...
+   (jalankan ulang `jaringan_distribusi.py` bila DB dibangun ulang — tabelnya
+   ikut ter-drop `build_db.py`).
+5. **Belum dikerjakan Bab V:** Tahap 2 (ekonomi: RAB, retribusi, BEP) dan
+   Tahap 3 (dashboard web lokal + test suite); naskah Bab V distribusi/pompa
+   menyusul setelah angka disepakati.
 
 ## Flag / isu terbuka
 

@@ -8,7 +8,7 @@ dari data mentah → SQLite → JSON → workbook Excel berformula hidup → ver
 otomatis. Database SQLite adalah **satu-satunya sumber kebenaran**; setiap angka di
 naskah harus ditarik dari hasil pipeline ini.
 
-**Status saat ini: Bab IV Tahap 1–5 SELESAI (naskah Bab 4 + lampiran + grafik terbit); Tahap 6 berjalan — PDF naskah + render CAD selesai, keputusan alokasi lahan kolam menunggu user, lalu Bab V.**
+**Status saat ini: Bab IV Tahap 1–5 SELESAI; Tahap 6 hampir selesai (PDF + render CAD + housekeeping beres; keputusan lahan kolam DITUNDA ke asistensi dosen); Bab V Tahap 1 (jaringan distribusi + pompa) komputasi selesai — berikutnya Bab V Tahap 2 (ekonomi).**
 
 ---
 
@@ -24,7 +24,7 @@ Penulisan dan komputasi tesis terbagi dalam tahapan kerja terstruktur:
 | 4 | IV | Analisis sensitivitas + pembahasan + verifikasi asumsi lapangan | **SELESAI** (Subbab 4.9 & 4.10) |
 | 5 | IV | Naskah Bab 4 final (docx) + lampiran | **SELESAI** (`manuscript/BAB_IV_HASIL_DAN_PEMBAHASAN.docx`, `LAMPIRAN_BAB_IV.docx`; Daftar Pustaka & Muka-muka oleh user) |
 | 6 | - | Finishing: PDF naskah, render CAD, keputusan lahan kolam, housekeeping | **BERJALAN** — PDF Bab III/IV/Lampiran/Bab V + render `figures/sket_lengkap_dxf*.png/.pdf` selesai; keputusan lahan menunggu user |
-| 1 | V | Jaringan distribusi bertekanan + pompa | — |
+| 1 | V | Jaringan distribusi bertekanan + pompa | **SELESAI (komputasi)** (`src/jaringan_distribusi.py`; angka menunggu asistensi dosen) |
 | 2 | V | Ekonomi teknik: RAB, operasional, retribusi, BEP | — |
 | 3 | V | TAHAP TEST — dashboard web lokal (pipeline + test suite) | — |
 
@@ -109,6 +109,7 @@ Urutan wajib (dari root repositori):
 python src/build_db.py          # 1. data mentah/sample -> data/processed/hidrologi.db
 python src/analisis2.py         # 2. statistik, uji, frekuensi -> hasil_validasi.json
 python src/analisis_desain.py   # 3. neraca air, hidrolika pipa, kolam -> hasil_desain.json + DB
+python src/jaringan_distribusi.py # 3b. Bab V: jaringan tekan + pompa -> hasil_jaringan.json + DB
 python tools/buat_diagram.py    # 4. figures/diagram-alur-hidrologi.html
 python tools/buat_excel.py      # 5. data/processed/Perhitungan_Hidrologi.xlsx (formula hidup)
 python tools/verifikasi_excel.py# 6. recalc + verifikasi silang (WAJIB LULUS, exit code 0)
@@ -176,8 +177,10 @@ dashboard web lokal di Bab V Tahap 3).
    dihapus; Ap = 5.256,25 m² dari iterasi Vs↔Ap titik tetap.
 3. **Asumsi lapangan WAJIB diverifikasi survei/waterpass**: Lo = 8 m, S_atap = 30%,
    S_pipa = 0,30%, he = 3 m (parameter_desain).
-4. **Rekonsiliasi lahan kolam (Tahap 6, menunggu keputusan user)**: Ap rencana
-   5.256,25 m² vs lahan FASOS 814 m² — analisis opsi disiapkan di handoff.
+4. **Rekonsiliasi lahan kolam**: Ap rencana 5.256,25 m² vs lahan FASOS 814 m² —
+   analisis opsi (A–D) sudah disiapkan; **keputusan DITUNDA user untuk dibahas
+   dengan dosen** (lihat HANDOFF.md bagian Tahap 6). Selama menunggu, angka desain
+   tetap fraksi 65%.
 5. Data hilang 12 hari NULL (SNI 2415:2016 §4.2.3) — keputusan M2 ditangguhkan
    sampai asistensi dosen.
 6. CSV NOAA ISD 2025 hanya sampai 24 Agu 2025 (arsip NOAA) — bila arsip lengkap,
