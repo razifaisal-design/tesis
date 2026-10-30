@@ -115,12 +115,12 @@
  ],
  "pompa": {
   "Q": 6.24,
-  "H_kerja": 22.26,
+  "H_kerja": 22.29,
   "H_terpilih": 28,
-  "lift_statik": 5.0,
-  "los_gesek": 15.69,
+  "lift_statis_tekanan_sisa": 5.0,
+  "los_gesek": 15.72,
   "minor": 1.57,
-  "P_shaft": 688,
+  "P_shaft": 689,
   "P_motor": 740,
   "unit": 2,
   "tipe": "sentrifugal permukaan self-priming"

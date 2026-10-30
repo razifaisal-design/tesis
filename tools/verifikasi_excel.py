@@ -217,6 +217,36 @@ for f, r0 in blocks:
     check(f"Neraca!E{s+3} total net f={fk}", cval("Neraca_Air", f"E{s+3}"),
           HD["neraca"][fk]["total_net"], "abs", 0.05)
 
+# ---------- G. sheet Jaringan_Distribusi vs tabel jaringan_distribusi + JSON ----------
+HJ = json.load(open(ROOT / "data" / "processed" / "hasil_jaringan.json"))
+_con2 = sqlite3.connect(DB)
+JRG = list(_con2.execute(
+    "SELECT segmen,L_m,Q_l_det,D_mm,v_ms,hf_m FROM jaringan_distribusi ORDER BY rowid"))
+_con2.close()
+check("Jaringan!B27 Q pompa (m3/jam)", cval("Jaringan_Distribusi", "B27"),
+      HJ["kebutuhan"]["Q_pompa"], "rel", 1e-6)
+check("Jaringan!B28 Q pompa (m3/dtk)", cval("Jaringan_Distribusi", "B28"),
+      HJ["kebutuhan"]["Q_pompa"] / 3600, "rel", 1e-6)
+JR0 = 33
+for i, (seg, L, Ql, D, v, hf) in enumerate(JRG):
+    r = JR0 + i
+    check(f"Jaringan!D{r} {seg} L", cval("Jaringan_Distribusi", f"D{r}"), L, "abs", 1e-6)
+    # DB membulatkan Q/v/hf 3 desimal - pakai toleransi abs setengah unit pembulatan
+    check(f"Jaringan!E{r} {seg} Q", cval("Jaringan_Distribusi", f"E{r}"),
+          Ql / 1000, "abs", 5e-7)
+    check(f"Jaringan!F{r} {seg} DN", cval("Jaringan_Distribusi", f"F{r}"), D, "abs", 0)
+    check(f"Jaringan!H{r} {seg} v", cval("Jaringan_Distribusi", f"H{r}"), v, "abs", 5e-4)
+    check(f"Jaringan!I{r} {seg} hf", cval("Jaringan_Distribusi", f"I{r}"), hf, "abs", 5e-4)
+P = HJ["pompa"]
+check("Jaringan!B53 H kerja", cval("Jaringan_Distribusi", "B53"), P["H_kerja"], "abs", 0.011)
+check("Jaringan!B54 H terpilih", cval("Jaringan_Distribusi", "B54"), P["H_terpilih"], "abs", 0)
+check("Jaringan!B57 P motor", cval("Jaringan_Distribusi", "B57"), P["P_motor"], "abs", 0)
+check("Jaringan!C62 status v", cval("Jaringan_Distribusi", "C62"),
+      "LOLOS (v <= v_max)", "str")
+check("Jaringan!C63 status head", cval("Jaringan_Distribusi", "C63"), "AMAN", "str")
+check("Jaringan!B64 L total", cval("Jaringan_Distribusi", "B64"),
+      HJ["layout"]["L_total_pipa"], "abs", 0.051)
+
 # ---------- F. tidak boleh ada sel error formula ----------
 NERR = 0
 for key, v in SOL.items():

@@ -23,8 +23,8 @@ Penulisan dan komputasi tesis terbagi dalam tahapan kerja terstruktur:
 | 3 | IV | Visualisasi hasil siap naskah (grafik Bab 4) | **SELESAI** (`figures/gambar4-1..8.png`, digarap bersama Tahap 5) |
 | 4 | IV | Analisis sensitivitas + pembahasan + verifikasi asumsi lapangan | **SELESAI** (Subbab 4.9 & 4.10) |
 | 5 | IV | Naskah Bab 4 final (docx) + lampiran | **SELESAI** (`manuscript/BAB_IV_HASIL_DAN_PEMBAHASAN.docx`, `LAMPIRAN_BAB_IV.docx`; Daftar Pustaka & Muka-muka oleh user) |
-| 6 | - | Finishing: PDF naskah, render CAD, keputusan lahan kolam, housekeeping | **BERJALAN** — PDF Bab III/IV/Lampiran/Bab V + render `figures/sket_lengkap_dxf*.png/.pdf` selesai; keputusan lahan menunggu user |
-| 1 | V | Jaringan distribusi bertekanan + pompa | **SELESAI (komputasi)** (`src/jaringan_distribusi.py`; angka menunggu asistensi dosen) |
+| 6 | - | Finishing: PDF naskah, render CAD, keputusan lahan kolam, housekeeping | **SELESAI** — PDF Bab III/IV/Lampiran/Bab V + render `figures/sket_lengkap_dxf*.png/.pdf`; keputusan lahan DITUNDA user ke asistensi dosen |
+| 1 | V | Jaringan distribusi bertekanan + pompa | **SELESAI (komputasi + workbook 16 sheet + figur)** (`src/jaringan_distribusi.py`; handoff: [`HANDOFF_BAB_V_TAHAP_1.md`](HANDOFF_BAB_V_TAHAP_1.md); asumsi BELUM di-asistensi — sel kuning live) |
 | 2 | V | Ekonomi teknik: RAB, operasional, retribusi, BEP | — |
 | 3 | V | TAHAP TEST — dashboard web lokal (pipeline + test suite) | — |
 
@@ -67,7 +67,7 @@ repo-tesis/
 │   ├── analisis_desain.py  # Neraca air + hidrolika pipa + desain kolam (engine Tahap 2)
 │   └── legacy/             # Skrip lama (analisis_hujan.py) — sudah digantikan
 ├── tools/                  # Skrip utilitas & output
-│   ├── buat_excel.py       # Workbook Excel 14 sheet, formula hidup silang-sheet
+│   ├── buat_excel.py       # Workbook Excel 16 sheet, formula hidup silang-sheet
 │   ├── buat_diagram.py     # Diagram alur hidrologi (HTML/SVG)
 │   ├── verifikasi_excel.py # Recalc (pustaka formulas) + verifikasi vs DB/JSON
 │   ├── recalc_excel.py     # Recalc via LibreOffice headless (bake cached values)
@@ -78,7 +78,7 @@ repo-tesis/
     ├── raw/                # Data mentah & arsip ~1,2 GB — DI-IGNORE Git (lihat README di dalamnya)
     ├── sample/             # Salinan data curah hujan (68 KB) agar pipeline jalan penuh di cloud
     └── processed/          # HASIL: hidrologi.db, hasil_validasi.json, hasil_desain.json,
-                            #        Perhitungan_Hidrologi.xlsx (14 sheet, terverifikasi)
+                            #        Perhitungan_Hidrologi.xlsx (16 sheet, terverifikasi)
 ```
 
 ---
@@ -116,9 +116,10 @@ python tools/verifikasi_excel.py# 6. recalc + verifikasi silang (WAJIB LULUS, ex
 python tools/recalc_excel.py    # 7. (opsional) bake cached values via LibreOffice
 ```
 
-Verifikasi terakhir (Paket A, 29 Okt 2026): **7.152 pemeriksaan, 0 gagal** — termasuk
-5.880 sel deret neraca air (5 fraksi × 168 bulan × 7 kolom) dan 342 cek rantai
-Penman, dibandingkan langsung ke tabel `neraca_bulanan`/`evaporasi` di database. `tools/verifikasi_excel.py` keluar dengan kode 1 bila
+Verifikasi terakhir (Bab V Tahap 1, 30 Okt 2026): **7.225 pemeriksaan, 0 gagal** — termasuk
+6.720 sel deret neraca air (5 fraksi × 168 bulan × 8 kolom), 342 cek rantai
+Penman, dan 73 cek sheet Jaringan_Distribusi vs tabel `jaringan_distribusi` +
+`hasil_jaringan.json`, dibandingkan langsung ke database. `tools/verifikasi_excel.py` keluar dengan kode 1 bila
 ada nilai yang menyimpang — aman dipakai sebagai test suite otomatis (dasar
 dashboard web lokal di Bab V Tahap 3).
 

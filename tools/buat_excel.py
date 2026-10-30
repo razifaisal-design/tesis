@@ -27,6 +27,8 @@ evap_rows = [dict(zip(EVAP_COLS, row)) for row in _cur.fetchall()]
 pipa_rows = list(con.execute("SELECT label,d_mm FROM pipa_standar ORDER BY urut"))
 bulan_rows = list(con.execute("SELECT tahun,bulan,mm,n_hari FROM curah_hujan_bulanan ORDER BY tahun,bulan"))
 hd_rows = list(con.execute("SELECT kunci,nilai,satuan,ket FROM hasil_desain ORDER BY rowid"))
+jrg_rows = list(con.execute(
+    "SELECT segmen,ket,L_m,Q_l_det,D_mm,v_ms,hf_m FROM jaringan_distribusi ORDER BY rowid"))
 con.close()
 hd = {k: v for k, v, *_ in hd_rows}
 with open(ROOT / "data" / "processed" / "iklim_harian.csv") as fh:
@@ -106,6 +108,7 @@ ws_eva = wb.create_sheet("Evaporasi")
 ws_hyp = wb.create_sheet("Hidrolika_Pipa")
 ws_nrc = wb.create_sheet("Neraca_Air")
 ws_klm = wb.create_sheet("Desain_Kolam")
+ws_jrg = wb.create_sheet("Jaringan_Distribusi")
 ws_koef = wb.create_sheet("Koefisien")
 
 # ================= 1. Data_Harian (dari SQLite) =================
@@ -818,6 +821,142 @@ for k, f in enumerate(FR_LIST):
     put(ws_klm, f"E{r}", f"={TNET[k]}", fmt="0.00", box=True)
 put(ws_klm, "A60", "Catatan: fraksi desain 0,65 (highlight kuning). Evaporasi = Penman muka air dan hujan langsung di permukaan kolam (P x Ap) dimasukkan sebagai pemasukan (keputusan 1 REVISI.md), sehingga iterasi Vs<->Ap konvergen pada titik tetap (blok baris 28-35, cek live baris 37-42).")
 widths(ws_klm, {"A": 34, "B": 15, "C": 16, "D": 58, "E": 15})
+
+# ================= 15. Jaringan_Distribusi (Bab V Tahap 1) =================
+put(ws_jrg, "A1", "JARINGAN DISTRIBUSI BERTEKANAN + POMPA (BAB V TAHAP 1)", font=TITLE)
+put(ws_jrg, "A2", "Jaringan kolam -> 160 unit: pipa induk (10 sub-segmen) -> lateral per baris blok -> sambungan unit. "
+    "Los gesek Hazen-Williams [40] hf = 10,67.L.(Q/C)^1,852 / D^4,87 (PVC C = 140). "
+    "Pompa: H kerja = lift statis + tekanan sisa + los gesek + rugi minor 10%; daya P = rho.g.Q.H/eta.")
+put(ws_jrg, "A3", "SUMBER: tabel jaringan_distribusi & parameter_desain di data/processed/hidrologi.db "
+    "(src/jaringan_distribusi.py); hasil_jaringan.json. Sel KUNING = asumsi terdokumentasi yang "
+    "BELUM disepakati dosen (jam operasi, elevasi bak, tekanan sisa, efisiensi) - ubah di sini, "
+    "seluruh perhitungan menyesuaikan (formula hidup).")
+JRG_P = ["jam_operasi_pompa", "C_HazenWilliams", "elev_muka_air_kolam", "elev_bak_unit",
+         "tekanan_sisa_min", "v_min_tekan", "v_max_tekan", "L_sambungan_unit",
+         "n_baris_blok", "lebar_kawasan_siteplan", "eta_pompa", "Ld", "n_seg_induk"]
+put(ws_jrg, "A5", "PARAMETER & ASUMSI (input biru-kuning; lihat kolom keterangan)", font=BOLD)
+header_row(ws_jrg, 6, ["Parameter", "Nilai", "Satuan", "Keterangan"])
+JP_ROW = {}
+for i, k in enumerate(JRG_P):
+    r = 7 + i
+    JP_ROW[k] = r
+    v, s, ket = par[k]
+    put(ws_jrg, f"A{r}", k, box=True)
+    put(ws_jrg, f"B{r}", v, font=INPUT, fmt="0.####", fill=YELLOW, box=True)
+    put(ws_jrg, f"C{r}", s, box=True)
+    put(ws_jrg, f"D{r}", ket, box=True)
+JQ = f"$B${JP_ROW['jam_operasi_pompa']}"
+
+put(ws_jrg, "A22", "KEBUTUHAN & DEBIT POMPA (formula hidup, link sheet Kawasan)", font=BOLD)
+header_row(ws_jrg, 23, ["Besaran", "Nilai", "Satuan", "Rumus"])
+put(ws_jrg, "A24", "Q kebutuhan harian (fraksi 100%)", box=True)
+put(ws_jrg, "B24", "=Kawasan!$B$20", fmt="0.000", box=True)
+put(ws_jrg, "C24", "m3/hari", box=True)
+put(ws_jrg, "D24", "link sheet Kawasan (Q harian)", box=True)
+put(ws_jrg, "A25", "Fraksi desain", box=True)
+put(ws_jrg, "B25", f"=Kawasan!$A${R_FR0 + KDES}", fmt="0.00", box=True)
+put(ws_jrg, "C25", "-", box=True)
+put(ws_jrg, "D25", "link sheet Kawasan (0,65)", box=True)
+put(ws_jrg, "A26", "Q desain harian", box=True)
+put(ws_jrg, "B26", "=B24*B25", fmt="0.000", box=True)
+put(ws_jrg, "C26", "m3/hari", box=True)
+put(ws_jrg, "D26", "Q harian x fraksi", box=True)
+put(ws_jrg, "A27", "Q pompa (kerja)", box=True)
+put(ws_jrg, "B27", f"=B26/{JQ}", fmt="0.000", box=True)
+put(ws_jrg, "C27", "m3/jam", box=True)
+put(ws_jrg, "D27", "Q desain / jam operasi", box=True)
+put(ws_jrg, "A28", "Q pompa", box=True)
+put(ws_jrg, "B28", "=B27/3600", fmt="0.00000000", box=True)
+put(ws_jrg, "C28", "m3/dtk", box=True)
+put(ws_jrg, "A29", "Jumlah unit", box=True)
+put(ws_jrg, "B29", f"=Kawasan!$B${KAW_ROW['jumlah_unit']}", fmt="0", box=True)
+put(ws_jrg, "C29", "unit", box=True)
+put(ws_jrg, "D29", "link sheet Kawasan", box=True)
+
+put(ws_jrg, "A31", "TABEL SEGMEN JARINGAN (jalur terburuk: kolam -> unit terjauh)", font=BOLD)
+header_row(ws_jrg, 32, ["Segmen", "i", "Sisa lateral", "L (m)", "Q (m3/dtk)", "D (mm)",
+                        "A (m2)", "v (m/dtk)", "hf (m)", "Keterangan"])
+JRG_R0 = 33
+Q_MS = "$B$28"
+N_LAT = f"$B${JP_ROW['n_baris_blok']}"
+for k, (seg, ket, L, Ql, D, v, hf) in enumerate(jrg_rows):
+    r = JRG_R0 + k
+    put(ws_jrg, f"A{r}", seg, box=True)
+    put(ws_jrg, f"J{r}", ket, box=True)
+    if seg.startswith("INDUK"):
+        i = int(seg.split("_")[1])
+        put(ws_jrg, f"B{r}", i, font=INPUT, fmt="0", box=True)
+        put(ws_jrg, f"C{r}", f"={N_LAT}-2*INT((B{r}-1)/2)-MOD(B{r}-1,2)", fmt="0", box=True)
+        put(ws_jrg, f"D{r}", f"=$B${JP_ROW['Ld']}/$B${JP_ROW['n_seg_induk']}",
+            fmt="0.00", box=True)
+        put(ws_jrg, f"E{r}", f"=MAX({Q_MS}/{N_LAT}*MAX(C{r},0)/2,{Q_MS}/{N_LAT})",
+            fmt="0.00000000", box=True)
+    elif seg == "LATERAL":
+        put(ws_jrg, f"D{r}", f"=$B${JP_ROW['lebar_kawasan_siteplan']}", fmt="0.00", box=True)
+        put(ws_jrg, f"E{r}", f"={Q_MS}/{N_LAT}", fmt="0.00000000", box=True)
+    elif seg == "SAMBUNGAN_UNIT":
+        put(ws_jrg, f"D{r}", f"=$B${JP_ROW['L_sambungan_unit']}", fmt="0.00", box=True)
+        put(ws_jrg, f"E{r}", f"={Q_MS}/$B$29", fmt="0.00000000", box=True)
+    else:   # SUCTION
+        put(ws_jrg, f"D{r}", L, font=INPUT, fmt="0.00", fill=YELLOW, box=True)
+        put(ws_jrg, f"E{r}", f"={Q_MS}", fmt="0.00000000", box=True)
+    put(ws_jrg, f"F{r}", D, font=INPUT, fmt="0", fill=YELLOW, box=True)
+    put(ws_jrg, f"G{r}", f"=PI()*(F{r}/1000)^2/4", fmt="0.000000", box=True)
+    put(ws_jrg, f"H{r}", f"=E{r}/G{r}", fmt="0.000", box=True)
+    put(ws_jrg, f"I{r}", f"=10.67*D{r}*(E{r}/$B${JP_ROW['C_HazenWilliams']})^1.852"
+                         f"/(F{r}/1000)^4.87", fmt="0.000", box=True)
+JRG_LAST = JRG_R0 + len(jrg_rows) - 1
+
+put(ws_jrg, "A48", "TITIK KERJA POMPA & DAYA (formula hidup)", font=BOLD)
+header_row(ws_jrg, 49, ["Besaran", "Nilai", "Satuan", "Rumus"])
+put(ws_jrg, "A50", "Lift statis + tekanan sisa", box=True)
+put(ws_jrg, "B50", (f"=$B${JP_ROW['elev_bak_unit']}-$B${JP_ROW['elev_muka_air_kolam']}"
+                    f"+$B${JP_ROW['tekanan_sisa_min']}"), fmt="0.00", box=True)
+put(ws_jrg, "D50", "elev bak - elev muka air + tekanan sisa [41]", box=True)
+put(ws_jrg, "A51", "Los gesek jalur terburuk", box=True)
+put(ws_jrg, "B51", f"=SUM(I{JRG_R0}:I{JRG_LAST})", fmt="0.00", box=True)
+put(ws_jrg, "D51", "SUM hf seluruh segmen (Hazen-Williams)", box=True)
+put(ws_jrg, "A52", "Rugi minor (10% los gesek)", box=True)
+put(ws_jrg, "B52", "=0.1*B51", fmt="0.00", box=True)
+put(ws_jrg, "A53", "H kerja pompa", font=BOLD, box=True)
+put(ws_jrg, "B53", "=B50+B51+B52", font=BOLD, fmt="0.00", box=True)
+put(ws_jrg, "C53", "m", box=True)
+put(ws_jrg, "A54", "H terpilih (margin 20%, pembulatan 2 m)", box=True)
+put(ws_jrg, "B54", "=CEILING(B53*1.2,2)", fmt="0.0", box=True)
+put(ws_jrg, "C54", "m", box=True)
+put(ws_jrg, "A55", "P hidro", box=True)
+put(ws_jrg, "B55", f"=9810*{Q_MS}*B53", fmt="0.0", box=True)
+put(ws_jrg, "C55", "W", box=True)
+put(ws_jrg, "D55", "rho.g.Q.H", box=True)
+put(ws_jrg, "A56", "P shaft", box=True)
+put(ws_jrg, "B56", f"=B55/$B${JP_ROW['eta_pompa']}", fmt="0.0", box=True)
+put(ws_jrg, "C56", "W", box=True)
+put(ws_jrg, "A57", "P motor (seri 0,185 kW)", box=True)
+put(ws_jrg, "B57", "=CEILING(B56/185,1)*185", fmt="0", box=True)
+put(ws_jrg, "C57", "W", box=True)
+put(ws_jrg, "A58", "Unit pompa", box=True)
+put(ws_jrg, "B58", 2, font=INPUT, fmt="0", fill=YELLOW, box=True)
+put(ws_jrg, "C58", "unit", box=True)
+put(ws_jrg, "D58", "1 aktif + 1 cadangan (rumah pompa di FASOS)", box=True)
+
+put(ws_jrg, "A60", "CEK KECEPATAN & KEAMANAN (live)", font=BOLD)
+header_row(ws_jrg, 61, ["Cek", "Nilai", "Status"])
+put(ws_jrg, "A62", "v maksimum segmen", box=True)
+put(ws_jrg, "B62", f"=MAX(H{JRG_R0}:H{JRG_LAST})", fmt="0.000", box=True)
+put(ws_jrg, "C62", (f'=IF(B62<=$B${JP_ROW["v_max_tekan"]},"LOLOS (v <= v_max)",'
+                    f'"GAGAL - perbesar DN")'), font=BOLD, box=True)
+put(ws_jrg, "A63", "H terpilih >= H kerja", box=True)
+put(ws_jrg, "B63", "=B54-B53", fmt="0.00", box=True)
+put(ws_jrg, "C63", '=IF(B63>=0,"AMAN","GAGAL - pompa tidak cukup")', font=BOLD, box=True)
+put(ws_jrg, "A64", "Total panjang pipa", box=True)
+put(ws_jrg, "B64", f"=SUM(D{JRG_R0}:D{JRG_LAST})", fmt="0.00", box=True)
+put(ws_jrg, "C64", "m", box=True)
+put(ws_jrg, "A66", "Catatan: pemilihan DN per segmen (kolom F, biru-kuning) = keputusan diskrit "
+    "src/jaringan_distribusi.py dgn kriteria v 0,6-1,5 m/s; ubah DN di sini bila perlu, "
+    "v & hf menghitung ulang live. Debit SUCTION = Q pompa penuh; INDUK menurun per sub-segmen "
+    "(sisa lateral); LATERAL = Q/5 per baris blok; SAMBUNGAN = Q/160 per unit.")
+widths(ws_jrg, {"A": 34, "B": 12, "C": 13, "D": 13, "E": 15, "F": 10, "G": 11, "H": 11,
+                "I": 10, "J": 34})
 
 # ================= 14. Koefisien =================
 put(ws_koef, "A1", "TABEL KOEFISIEN DAN NILAI KRITIS (referensi)", font=TITLE)

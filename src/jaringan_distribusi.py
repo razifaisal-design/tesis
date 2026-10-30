@@ -38,6 +38,9 @@ ASUMSI = [
     ("v_max_tekan", "1.5", "m/s", "Kecepatan ekonomis maksimum"),
     ("L_sambungan_unit", "12.0", "m", "Sambungan jalan -> bak unit (RMJ 6 m + halaman)"),
     ("n_baris_blok", "5.0", "-", "5 baris blok pada siteplan (01-160)"),
+    ("n_seg_induk", "10.0", "-", "Pembagian pipa induk menjadi 10 sub-segmen (profil debit)"),
+    ("lebar_kawasan_siteplan", "85.78", "m", "Lebar kawasan dr siteplan (lateral = lebar kawasan)"),
+    ("eta_pompa", "0.55", "-", "Efisiensi pompa sentrifugal kecil (asumsi katalog)"),
 ]
 
 # katalog pipa tekan PVC PN10 (mm) - dipilih dgn kriteria v 0,6-1,5 m/s
@@ -124,8 +127,10 @@ kum_hf += hf_samb
 
 # suction (kolam -> pompa rumah pompa): DN63, L 4 m, lift statis
 D_suction = 63
-hf_suction = hw_hf(Q_pompa_m3s, D_suction / 1000.0, 4.0)
+L_suction = 4.0
+hf_suction = hw_hf(Q_pompa_m3s, D_suction / 1000.0, L_suction)
 lift_suction = elev_bak - elev_muka + P_sisa            # total statis + sisa
+kum_hf += hf_suction                                    # los gesek suction ikut H kerja
 minor = 0.10 * kum_hf                                    # rugi minor 10% los gesek
 
 H_kerja = lift_suction + kum_hf + minor
@@ -156,7 +161,7 @@ if masalah:
 cur.execute("DROP TABLE IF EXISTS jaringan_distribusi")
 cur.execute("""CREATE TABLE jaringan_distribusi (
     segmen TEXT, ket TEXT, L_m REAL, Q_l_det REAL, D_mm REAL, v_ms REAL, hf_m REAL)""")
-baris = [("SUCTION", "Kolam -> pompa (rumah pompa)", 4.0, Q_pompa_m3s * 1000,
+baris = [("SUCTION", "Kolam -> pompa (rumah pompa)", L_suction, Q_pompa_m3s * 1000,
           D_suction, Q_pompa_m3s / (math.pi * (D_suction / 1000) ** 2 / 4), hf_suction)]
 for lab, L, Q, D, hf in segmen:
     v = Q / (math.pi * (D / 1000) ** 2 / 4)
@@ -198,12 +203,13 @@ keluaran = dict(
     layout=dict(L_induk=L_induk, n_seg_induk=n_seg_induk, L_seg=round(L_seg, 2),
                 n_lateral=n_lateral, lebar_kawasan=lebar_kawasan,
                 L_sambungan_unit=L_samb,
-                L_total_pipa=round(sum(s[1] for s in segmen) + 4.0, 1)),
+                L_total_pipa=round(sum(s[1] for s in segmen) + L_suction, 1)),
     segmen=[dict(segmen=lab, L_m=round(L, 2), Q_l_det=round(Q * 1000, 3), D_mm=D,
                  v_ms=round(Q / (math.pi * (D / 1000) ** 2 / 4), 3), hf_m=round(hf, 3))
             for lab, L, Q, D, hf in segmen],
     pompa=dict(Q=round(Q_pompa, 3), H_kerja=round(H_kerja, 2), H_terpilih=H_pompa,
-               lift_statik=round(lift_suction, 2), los_gesek=round(kum_hf, 2),
+               lift_statis_tekanan_sisa=round(lift_suction, 2),
+               los_gesek=round(kum_hf, 2),
                minor=round(minor, 2), P_shaft=round(P_shaft), P_motor=P_motor,
                unit=2, tipe="sentrifugal permukaan self-priming"),
 )
@@ -212,5 +218,5 @@ print(f"[ok] {JSON_OUT} + tabel jaringan_distribusi/pipa_tekan + parameter_desai
 print(f"  Q pompa = {Q_pompa:.2f} m3/jam @ H kerja {H_kerja:.2f} m "
       f"(terpilih {H_pompa:.0f} m), motor {P_motor} W, 2 unit")
 print(f"  los gesek jalur terburuk = {kum_hf:.2f} m (L total "
-      f"{sum(s[1] for s in segmen) + 4.0:.0f} m); D induk DN{D_induk}, "
+      f"{sum(s[1] for s in segmen) + L_suction:.0f} m); D induk DN{D_induk}, "
       f"lateral DN{D_lat}, sambungan DN{D_samb}")
