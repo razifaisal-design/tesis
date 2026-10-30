@@ -8,7 +8,7 @@ dari data mentah → SQLite → JSON → workbook Excel berformula hidup → ver
 otomatis. Database SQLite adalah **satu-satunya sumber kebenaran**; setiap angka di
 naskah harus ditarik dari hasil pipeline ini.
 
-**Status saat ini: TAHAP 2 SELESAI — persiapan masuk Tahap 3 (visualisasi grafik Bab IV).**
+**Status saat ini: Bab IV Tahap 1–5 SELESAI (naskah Bab 4 + lampiran + grafik terbit) — sesi berikutnya = Tahap 6 (finishing PDF/CAD/keputusan lahan), lalu Bab V.**
 
 ---
 
@@ -20,9 +20,9 @@ Penulisan dan komputasi tesis terbagi dalam tahapan kerja terstruktur:
 |---|---|---|---|
 | 1 | IV | Fondasi & verifikasi rumus OMML + skema database | **SELESAI** |
 | 2 | IV | Mesin desain (`analisis_desain.py`) + 5 sheet Excel baru + recalc + verifikasi | **SELESAI** |
-| 3 | IV | Visualisasi hasil siap naskah (grafik Bab 4) | **BERIKUTNYA** |
-| 4 | IV | Analisis sensitivitas + pembahasan + verifikasi asumsi lapangan | — |
-| 5 | IV | Naskah Bab 4 final (docx) + lampiran | — |
+| 3 | IV | Visualisasi hasil siap naskah (grafik Bab 4) | **SELESAI** (`figures/gambar4-1..8.png`, digarap bersama Tahap 5) |
+| 4 | IV | Analisis sensitivitas + pembahasan + verifikasi asumsi lapangan | **SELESAI** (Subbab 4.9 & 4.10) |
+| 5 | IV | Naskah Bab 4 final (docx) + lampiran | **SELESAI** (`manuscript/BAB_IV_HASIL_DAN_PEMBAHASAN.docx`, `LAMPIRAN_BAB_IV.docx`; Daftar Pustaka & Muka-muka oleh user) |
 | 1 | V | Jaringan distribusi bertekanan + pompa | — |
 | 2 | V | Ekonomi teknik: RAB, operasional, retribusi, BEP | — |
 | 3 | V | TAHAP TEST — dashboard web lokal (pipeline + test suite) | — |
@@ -36,8 +36,10 @@ Catatan progres:
   hidrolika pipa induk (aturan *envelope* iterasi), pipa per unit + talang + bak,
   desain kolam kriteria ganda (Vs vs Va) beserta umpan balik evaporasi; workbook
   14 sheet berformula hidup terekalkulasi dan **terverifikasi 5.972 pemeriksaan, 0 gagal**.
-- **Fokus berikutnya (Tahap 3)** — modul visualisasi grafik Bab IV
-  (`figures/`, sumber data dari JSON/DB yang sudah tervalidasi).
+- **Fokus berikutnya (Tahap 6 sesi)** — finishing: ekspor PDF naskah (LibreOffice),
+  render ulang gambar CAD, analisis keputusan alokasi lahan kolam (Ap rencana vs
+  lahan FASOS), housekeeping; rincian di [`HANDOFF_TAHAP_6.md`](HANDOFF_TAHAP_6.md).
+  Setelah itu Bab V Tahap 1 (jaringan distribusi + pompa).
 
 Detail handoff per sesi (dokumen keadaan, angka hasil, isu terbuka): lihat
 [`HANDOFF.md`](HANDOFF.md).

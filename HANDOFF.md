@@ -15,6 +15,70 @@ baca bagian "Status" dan "Pekerjaan berikutnya" dulu.
 > output ter-commit: `data/processed/iklim_harian.csv` + `evaporasi_penman.csv/.json`.
 > **Pekerjaan berikutnya = TAHAP 5** (lihat bagian bawah).
 
+## SESI 29–30 OKT 2026 (LANJUTAN-3) — TAHAP 5: NASKAH BAB 4 (docx)
+
+Melanjutkan sesi `5007b4ae` yang berhenti tepat setelah grafik Tahap 3 selesai.
+
+1. **`tools/buat_grafik.py` + `figures/gambar4-1..8.png`** sudah ada dari sesi
+   sebelumnya (Tahap 3 = 8 grafik, dpi 300) — TIDAK diubah, kini ikut ter-commit.
+2. **`tools/buat_bab4_docx.py` (BARU):** generator naskah **BAB IV HASIL DAN
+   PEMBAHASAN**. Seluruh angka dibaca dari sumber kebenaran (`hasil_validasi.json`,
+   `hasil_desain.json`, tabel `kawasan`/`evaporasi`/`neraca_bulanan`/
+   `curah_hujan_bulanan` di DB) — tidak ada nilai hardcode dan **tidak ada angka
+   lama** (Supadio 25 th / Vs 517 m³ / kolam 814 m²) yang tercampur.
+3. **Naskah keluaran:** `manuscript/BAB_IV_HASIL_DAN_PEMBAHASAN.docx` (20 tabel,
+   8 gambar). Struktur mengikuti usulan TEMUAN GLM-5.3 §6: 4.1 karakteristik
+   kawasan · 4.2 data hujan (uji-t, konsistensi) · 4.3 frekuensi & R24 (3 dist,
+   χ², LP3) · 4.4 tc & IDF Mononobe · 4.5 debit puncak Rasional · 4.6 hidrolika pipa
+   · 4.7 kebutuhan & neraca air + evaporasi (Rippl → Vs, keandalan) · 4.8 Va &
+   Vdesain = maks(Vs, Va) · 4.9 sensitivitas · 4.10 pembahasan · 4.11 rekap + keterbatasan.
+4. **Kepatuhan format Pedoman Untan (Okt 2017):** margin kiri 4 cm (termasuk
+   1 cm penjilidan), atas/kanan/bawah 3 cm; TNR 12 pt; spasi 1,5; justify; judul
+   tabel di ATAS, sumber ditulis pada kalimat yang merujuk; keterangan gambar di
+   BAWAH (huruf pertama kapital).
+5. **Kepatuhan TEMUAN GLM-5.3:** tanpa blok "[REVISI …]"; istilah hanya
+   "evaporasi" (bukan ET0/E0); chi-kuadrat bin menjumlah 1 (0,50/0,20/0,10/0,06/0,14)
+   + syarat E ≥ 5; satu tabel satu angka; pipa diperlakukan kontinu.
+6. **Angka desain pada naskah (terverifikasi vs DB/JSON):** R24 T=10 = 163,236 mm
+   (LP3) · I = 383,15 mm/jam · Q = 0,8862 m³/dtk → DN900 (v = 1,393 m/dtk, kapasitas
+   1,1718 m³/dtk) · evaporasi Penman 142,6–166,2 mm/bulan (total 1.847,2 mm/th) ·
+   Vs = 15.751,7 m³, **Vdesain = maks(Vs, Va) = 15.751,7 m³** (Vs > Va = 3.190,4 m³)
+   → kolam 72,5 × 72,5 × 3,0 m (+0,5 m freeboard) · keandalan f65% = 99,4%.
+7. **Belum dikerjakan (lihat bagian bawah):** lampiran Bab IV, perbarui Bab III
+   (Supadio/ERA5 → BWSK/Penman), reformat Daftar Pustaka ke pedoman, muka-muka
+   (abstrak 2 bahasa, daftar istilah/simbol), sinkron CAD, verifikasi lapangan,
+   housekeeping, dan Bab V baru. PDF belum diekspor (LibreOffice `/Volumes/Lexar`
+   tidak ter-mount saat sesi ini).
+
+## SESI 30 OKT 2026 (LANJUTAN-4) — BAB III, LAMPIRAN, BAB V, CAD
+
+1. **`tools/naskah_util.py` (BARU):** utilitas bersama generator naskah (margin
+   Pedoman Untan, TNR 12, spasi 1,5, helper tabel/gambar/kapital).
+2. **`tools/buat_bab3_docx.py` → `manuscript/BAB_III_REVISI.docx`:** Bab III
+   direvisi sesuai 9 butir REVISI.md — sumber hujan BWSK 2012–2025 (justifikasi
+   14 th), variabel iklim NOAA ISD Supadio + NASA POWER, **evaporasi** Penman +
+   hujan langsung kolam (istilah ET0/E0 dihapus), data hilang 12 hari NULL
+   (SNI 2415:2016 §4.2.3; WMO-168 §9.7.2), uji homogenitas 2 arah α = 5% (t kritis
+   2,179), chi-kuadrat bin 0,50/0,20/0,10/0,06/0,14 + E ≥ 5, justifikasi T = 10
+   (termasuk r = 1 − (1 − 1/T)^n → 87,8%), dan pipa kontinu (atap→kolam gravitasi,
+   kolam→warga pompa).
+3. **`tools/buat_lampiran_bab4_docx.py` → `manuscript/LAMPIRAN_BAB_IV.docx`:**
+   Lampiran A (data hujan + QC + uji), B (analisis frekuensi + χ²), C (IDF Mononobe
+   5–1.440 mnt + debit), D (iterasi hidrolika penuh + pipa standar), E (neraca
+   bulanan 168 bulan fraksi 65%), F (rantai hitung evaporasi Penman), G (rekapitulasi
+   hasil desain).
+4. **`tools/buat_bab5_docx_baru.py` → `manuscript/BAB_V_KESIMPULAN.docx`:** Bab V
+   baru (kesimpulan per rumusan masalah 1–4 + saran). RM4 (BEP) ditulis sebagai
+   pekerjaan perancangan lanjutan — tidak mengarang angka ekonomi. Draf lama
+   (`BAB_V_KESIMPULAN_DAN_SARAN.docx`) tidak dipakai.
+5. **CAD disinkronkan:** `sket_lengkap.dxf` — “PIPA OUTFALL Ø800” → **DN900**;
+   anotasi kolam → **15.751,7 M3 (H = 3.0 M) | AP = 5.256,25 M2**. Label
+   “L = 814 m²” **tidak diubah** (itu luas lahan FASOS, bukan kolam). Backup:
+   `sket_lengkap.dxf.bak`.
+6. **Konsistensi angka:** kebutuhan desain 65% = 18.221 m³/tahun (rumus 76,8 × 0,65
+   × 365); pasokan atap 25.132 m³/tahun; total pemasukan 41.010 m³/tahun. Catatan
+   selisih bulan nyata vs 365 hari (18.235 vs 18.221; < 0,1%) diletakkan di Bab IV.
+
 ## SESI 29 OKT 2026 (LANJUTAN-2) — TRANSPARANSI EVAPORASI DI WORKBOOK
 
 Permintaan: angka evaporasi Penman tidak boleh muncul begitu saja — semua langkah
@@ -218,7 +282,7 @@ dihapus. Repo sudah dipush ke **https://github.com/razifaisal-design/tesis**
 | 2 | IV | Mesin desain (analisis_desain.py) + 5 sheet Excel baru + recalc + verifikasi | SELESAI |
 | 3 | IV | Visualisasi hasil siap naskah (grafik Bab 4) | dikerjakan bersama Tahap 5 |
 | 4 | IV | Analisis sensitivitas + pembahasan + verifikasi asumsi lapangan | dikerjakan bersama Tahap 5 |
-| 5 | IV | Naskah Bab 4 final (docx) + lampiran | **BERIKUTNYA (handoff sesi ini)** |
+| 5 | IV | Naskah Bab 4 final (docx) + lampiran | **NASKAH SELESAI** (`manuscript/BAB_IV_HASIL_DAN_PEMBAHASAN.docx`); lampiran menyusul |
 | 1 | V | Jaringan distribusi bertekanan + pompa | — |
 | 2 | V | Ekonomi teknik: RAB, operasional, retribusi, BEP | — |
 | 3 | V | TAHAP TEST — dashboard web lokal (pipeline + test suite) | — |
@@ -409,19 +473,41 @@ Daftar grafik yang dibuat (usulan, boleh disesuaikan):
 8. (Opsional) evaporasi Penman bulanan: batang E0 mm/bulan + komponen iklim.
 
 Checklist tahap 5:
-- [ ] Buat `tools/buat_grafik.py` (baca DB/JSON, jangan hitung ulang rumus)
-- [ ] Output PNG dpi 300 (+ SVG opsional) ke `figures/`, penomoran mengikuti
+- [x] Buat `tools/buat_grafik.py` (baca DB/JSON, jangan hitung ulang rumus)
+- [x] Output PNG dpi 300 (+ SVG opsional) ke `figures/`, penomoran mengikuti
       urutan Bab 4 (mis. gambar4-1.png ...)
-- [ ] Semua angka pada grafik identik dengan json/DB (sudah tervalidasi)
-- [ ] Legenda/label Bahasa Indonesia, satuan lengkap, konsisten dgn sheet Excel
-- [ ] Pembahasan (Tahap 4): sensitivitas th/fraksi/evaporasi + verifikasi asumsi
-      lapangan (flag #3) + konsistensi sumber data (flag #4)
-- [ ] Naskah Bab 4 final docx + lampiran — ikuti `TEMUAN GLM-5.3.md`
-      (Larangan A/B/C, tabel identik dengan Excel, kutipan keputusan, pedoman Untan)
-- [ ] Jalankan ulang pipeline + `verifikasi_excel.py` untuk pastikan tidak ada regresi
-- [ ] Perbarui tabel status di dokumen HANDOFF.md ini
+- [x] Semua angka pada grafik identik dengan json/DB (sudah tervalidasi)
+- [x] Legenda/label Bahasa Indonesia, satuan lengkap, konsisten dgn sheet Excel
+- [x] Pembahasan (Tahap 4): sensitivitas th/fraksi/evaporasi + verifikasi asumsi
+      lapangan (flag #3) + konsistensi sumber data (flag #4) — masuk Subbab 4.9 & 4.10
+- [x] Naskah Bab 4 final docx — `manuscript/BAB_IV_HASIL_DAN_PEMBAHASAN.docx`
+      (generator `tools/buat_bab4_docx.py`); ikuti `TEMUAN GLM-5.3.md` + pedoman Untan
+- [ ] **Lampiran Bab 4** (tabel iterasi lengkap, kurva IDF penuh, dsb.) — menyusul
+- [x] Pipeline tidak diubah; `verifikasi_excel.py` tidak perlu dijalankan ulang
+      (tidak ada perubahan pada DB/JSON/xlsx). Jika ragu, jalankan ulang dari root.
+- [x] Perbarui tabel status di dokumen HANDOFF.md ini
+
+## Sisa pekerjaan Tahap 5 / lanjutan (belum selesai)
+
+1. ~~Lampiran Bab IV~~ **SELESAI** — `manuscript/LAMPIRAN_BAB_IV.docx`.
+2. ~~Bab III~~ **SELESAI** — `manuscript/BAB_III_REVISI.docx` (9 butir REVISI.md).
+3. **Daftar Pustaka** — reformat lewat **Mendeley** (diputuskan user).
+4. **Muka-muka** (pernyataan, pengesahan, abstrak 2 bahasa, daftar istilah/simbol)
+   — dikerjakan user.
+5. ~~Bab V baru~~ **SELESAI** — `manuscript/BAB_V_KESIMPULAN.docx`.
+6. ~~Sinkron CAD~~ **SELESAI** — `sket_lengkap.dxf` (+ backup .bak); render
+   `sket_lengkap.pdf/.png` belum diperbarui.
+7. **Verifikasi lapangan** (Lo, S_atap, S_pipa, he) + housekeeping
+   (hapus file lock `~$oposal Tesis ...docx`, perbarui README).
+8. **Ekspor PDF** naskah — butuh LibreOffice (`/Volumes/Lexar/APPS/LibreOffice.app`),
+   belum ter-mount.
+9. **Rekonsiliasi lahan kolam**: Ap rencana 5.256,25 m² vs lahan FASOS 814 m² —
+   perlu keputusan alokasi lahan.
 
 ## Panduan memulai sesi baru
+
+> Untuk sesi/Tahap 6 berikutnya ada handoff khusus:
+> [`HANDOFF_TAHAP_6.md`](HANDOFF_TAHAP_6.md) (misi Bab IV Tahap 3 + checklist).
 
 1. Baca HANDOFF.md ini + `README.md` + `data/processed/hasil_desain.json`.
 2. Beri user ringkasan 2 kalimat (status: tahap 1 & 2 Bab IV selesai, lanjut tahap 3).

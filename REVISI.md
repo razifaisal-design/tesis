@@ -22,7 +22,7 @@ sebagaimana dicatat.
 | 11 | Sumber hujan | **BWSK 14 tahun** (2012–2025) | Dikunci |
 | 12 | Bab IV/V | Perbarui dengan angka baru | Dicatat untuk revisi |
 | 13 | Grafik Tahap 3 | 7 gambar dari DB/JSON | Dicatat untuk revisi |
-| 14 | CAD | Sinkronkan DXF (Ø800 → DN900, anotasi kolam) | Dicatat untuk revisi |
+| 14 | CAD | Sinkronkan DXF (Ø800 → DN900, anotasi kolam) | **DIEKSEKUSI** (29–30 Okt 2026) — `sket_lengkap.dxf`; backup `sket_lengkap.dxf.bak` |
 | 15 | Verifikasi lapangan | Lo, S_atap, S_pipa, he | Dicatat untuk revisi |
 | 16 | Housekeeping | README/HANDOFF, file temp, struktur folder | Dicatat untuk revisi |
 
@@ -145,9 +145,15 @@ sebagaimana dicatat.
 
 ### 14. Sinkronkan CAD
 - `data/raw/arsip-tesis-lengkap/03_Desain_CAD_dan_Peta/sket_lengkap.dxf`:
-  - “PIPA OUTFALL Ø800” → **DN900**;
-  - “L = 814 m²” → luas kolam baru;
-  - “VOL. TAMPUNGAN = 1.025 M3 (H = 1.6 M)” → volume/kedalaman baru.
+  - “PIPA OUTFALL Ø800” → **PIPA OUTFALL DN900**: **DIEKSEKUSI**;
+  - “VOL. TAMPUNGAN = 1.025 M3 (H = 1.6 M)” → **“VOL. TAMPUNGAN = 15.751,7 M3
+    (H = 3.0 M) | AP KOLAM = 5.256,25 M2 (72,5 x 72,5 M)”**: **DIEKSEKUSI**;
+  - “L = 814 m²” **TIDAK diubah**: dari posisi koordinatnya label ini berada
+    persis di bawah teks “FASOS” sehingga merupakan **luas lahan FASOS**
+    (22 × 37 m), bukan luas kolam. Perlu rekonsiliasi terpisah karena luas
+    kolam rencana (5.256,25 m²) jauh lebih besar dari lahan FASOS 814 m².
+- Backup asli: `sket_lengkap.dxf.bak`. Render `sket_lengkap.pdf/.png` belum
+  diperbarui (butuh AutoCAD/LibreCAD).
 
 ### 15. Verifikasi lapangan
 - Lo (8 m), S_atap (30%), S_pipa (0,30%), he (3,0 m) masih asumsi.
