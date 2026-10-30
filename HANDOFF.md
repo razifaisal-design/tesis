@@ -431,6 +431,44 @@ Konsekuensi:
 4. Siteplan, foto survei, jurnal & tesis rujukan di sini dipakai langsung untuk
    Bab 4 Tahap 4 (verifikasi asumsi) dan Bab 5 (jaringan distribusi & BEP).
 
+## SESI 30 OKT 2026 (TAHAP 6) — FINISHING: PDF, CAD, ANALISIS LAHAN, HOUSEKEEPING
+
+1. **PDF naskah SELESAI** (LibreOffice via `/Volumes/Lexar`): `manuscript/BAB_III_REVISI.pdf`,
+   `BAB_IV_HASIL_DAN_PEMBAHASAN.pdf`, `LAMPIRAN_BAB_IV.pdf`, `BAB_V_KESIMPULAN.pdf`
+   — ikut ter-commit (`!manuscript/*.pdf`).
+2. **Render CAD SELESAI**: `tools/render_cad.py` (ezdxf + matplotlib) →
+   `figures/sket_lengkap_dxf.png/.pdf` (vektor saja, latar putih) +
+   `figures/sket_lengkap_dxf_satelit.png/.pdf` (vektor di atas citra satelit).
+   Anotasi DN900 + kolam 15.751,7 M3 tampil; zoom ke blok siteplan.
+3. **Analisis rekonsiliasi lahan (MENUNGGU KEPUTUSAN USER — jangan ubah workbook/DB
+   sebelum disepakati):** Ap rencana 5.256,25 m² vs lahan FASOS 814 m². Hitungan
+   (Rippl peak-to-trough tereplikasi persis thd `neraca_bulanan`; p_pond & evaporasi
+   diskalakan linier ke Ap=814):
+   - **Defisit lahan = 4.442,25 m²** (~6,5× luas FASOS).
+   - Skenario **FASOS 814 m², he = 3,0 m → V = 2.442 m³** (he 3,5 m → 2.849 m³):
+     fraksi 65% butuh **he ≈ 15,4 m** (Vs = 12.522,6 m³) — **tidak layak**.
+   - **Fraksi maksimum yang muat di 814 m²:** f ≈ **0,45** (Vs = 2.747 m³ → he 3,37 m;
+     54 l/hari/jiwa dari 120) — reliability 100% dgn V = 2.849 m³; f = 0,50
+     (Vs = 4.558 m³) butuh he ≈ 5,6 m.
+   - **Va atenuasi:** th = 0,5 jam = 1.595,2 m³ **muat** di 814 × 3,5 m;
+     th = 1 jam = 3.190,4 m³ **tidak muat**.
+   - **Opsi dibawa ke user:** (A) tambah lahan ~4.442 m² → desain tetap;
+     (B) lahan FASOS saja, fraksi turun ke ~45% (Vs ≈ 2.747 m³, kolam 28,5 × 28,5 × 3,4 m);
+     (C) kolam terdistribusi (FASOS + lahan tambahan di beberapa titik, total V tetap 15.751,7 m³);
+     (D) kombinasi B + tambah he/bebas evap. Keputusan → dokumentasi di HANDOFF.md +
+     konsekuensi (pipeline ulang + verifikasi) bila desain berubah.
+4. **Housekeeping SELESAI**: lock `~$oposal Tesis (claude) (Revisi Antigravity) 2.docx`
+   dihapus; `README.md` diperbarui (angka final: Vs 15.751,7 m³, kolam 72,5 × 72,5 × 3,0 m,
+   evaporasi Penman, verifikasi 7.152 cek; isu terbuka disesuaikan).
+5. **Checklist verifikasi lapangan (untuk user — survei/waterpass):**
+   - Lo = 8 m: ukur panjang talang satu unit rumah contoh (2–3 unit beda blok).
+   - S_atap = 30%: waterpass elevasi bibir vs titik rendah atap; catat elevasi ±cm.
+   - S_pipa = 0,30%: waterpass tiap 5–10 m sepanjang saluran atap→kolam; foto profil.
+   - he = 3 m: cek elevasi dasar rencana kolam vs elevasi inlet/outlet DN900.
+   - Koordinat (GPS/WGS84): titik inlet kolam, outlet pelimpah, ujung outfall;
+     lampirkan ke lampiran survei. Hasil → parameter_desain bila menyimpang (>10%:
+     pipeline ulang + verifikasi).
+
 ## Flag / isu terbuka
 
 1. ~~Evaporasi masih asumsi 120 mm/bulan~~ **SELESAI**: evaporasi kini Penman muka

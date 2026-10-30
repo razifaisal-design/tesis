@@ -8,7 +8,7 @@ dari data mentah → SQLite → JSON → workbook Excel berformula hidup → ver
 otomatis. Database SQLite adalah **satu-satunya sumber kebenaran**; setiap angka di
 naskah harus ditarik dari hasil pipeline ini.
 
-**Status saat ini: Bab IV Tahap 1–5 SELESAI (naskah Bab 4 + lampiran + grafik terbit) — sesi berikutnya = Tahap 6 (finishing PDF/CAD/keputusan lahan), lalu Bab V.**
+**Status saat ini: Bab IV Tahap 1–5 SELESAI (naskah Bab 4 + lampiran + grafik terbit); Tahap 6 berjalan — PDF naskah + render CAD selesai, keputusan alokasi lahan kolam menunggu user, lalu Bab V.**
 
 ---
 
@@ -23,6 +23,7 @@ Penulisan dan komputasi tesis terbagi dalam tahapan kerja terstruktur:
 | 3 | IV | Visualisasi hasil siap naskah (grafik Bab 4) | **SELESAI** (`figures/gambar4-1..8.png`, digarap bersama Tahap 5) |
 | 4 | IV | Analisis sensitivitas + pembahasan + verifikasi asumsi lapangan | **SELESAI** (Subbab 4.9 & 4.10) |
 | 5 | IV | Naskah Bab 4 final (docx) + lampiran | **SELESAI** (`manuscript/BAB_IV_HASIL_DAN_PEMBAHASAN.docx`, `LAMPIRAN_BAB_IV.docx`; Daftar Pustaka & Muka-muka oleh user) |
+| 6 | - | Finishing: PDF naskah, render CAD, keputusan lahan kolam, housekeeping | **BERJALAN** — PDF Bab III/IV/Lampiran/Bab V + render `figures/sket_lengkap_dxf*.png/.pdf` selesai; keputusan lahan menunggu user |
 | 1 | V | Jaringan distribusi bertekanan + pompa | — |
 | 2 | V | Ekonomi teknik: RAB, operasional, retribusi, BEP | — |
 | 3 | V | TAHAP TEST — dashboard web lokal (pipeline + test suite) | — |
@@ -114,9 +115,9 @@ python tools/verifikasi_excel.py# 6. recalc + verifikasi silang (WAJIB LULUS, ex
 python tools/recalc_excel.py    # 7. (opsional) bake cached values via LibreOffice
 ```
 
-Verifikasi terakhir (Tahap 2): **5.972 pemeriksaan, 0 gagal** — termasuk 5.880 sel
-deret neraca air (5 fraksi × 168 bulan × 7 kolom) dibandingkan langsung ke tabel
-`neraca_bulanan` di database. `tools/verifikasi_excel.py` keluar dengan kode 1 bila
+Verifikasi terakhir (Paket A, 29 Okt 2026): **7.152 pemeriksaan, 0 gagal** — termasuk
+5.880 sel deret neraca air (5 fraksi × 168 bulan × 7 kolom) dan 342 cek rantai
+Penman, dibandingkan langsung ke tabel `neraca_bulanan`/`evaporasi` di database. `tools/verifikasi_excel.py` keluar dengan kode 1 bila
 ada nilai yang menyimpang — aman dipakai sebagai test suite otomatis (dasar
 dashboard web lokal di Bab V Tahap 3).
 
@@ -128,8 +129,9 @@ dashboard web lokal di Bab V Tahap 3).
 | Q desain (envelope) | 0,8862 m³/dtk | maksimum dari 12 iterasi v↔td↔tc↔I↔Q↔D |
 | Pipa induk | DN900 | Manning aliran penuh; kapasitas 1,1718 m³/dtk (AMAN) |
 | Va (th = 1 jam) | 3.190,4 m³ | kriteria atenuasi |
-| Vs (fraksi 65%) | 15.148,4 m³ | kriteria penyimpanan (Rippl) — **penentu desain** |
-| Kolam retensi | 71 × 71,5 × 3,0 m (+0,5 m freeboard) | kedap (lined), lahan gambut |
+| Evaporasi (Penman muka air) | 142,6–166,2 mm/bulan | NOAA ISD Supadio + NASA POWER; total 1.847,2 mm/th |
+| Vs (fraksi 65%) | 15.751,7 m³ | kriteria penyimpanan (Rippl) — **penentu desain** |
+| Kolam retensi | 72,5 × 72,5 × 3,0 m (+0,5 m freeboard) | Ap = 5.256,25 m² (titik tetap iterasi Vs↔Ap); lahan gambut |
 | Reliability fraksi 65% | 99,4% | 167 dari 168 bulan terpenuhi |
 
 ---
@@ -168,12 +170,15 @@ dashboard web lokal di Bab V Tahap 3).
 
 ## 7. Peta Isu Terbuka
 
-1. Evaporasi masih asumsi 120 mm/bulan (`data/processed` → tabel `evaporasi`) —
-   rencana diganti data ERA5/BMKG pada Tahap 3/4.
-2. `parameter_desain.Ap_kolam` (1.200 m²) sudah tidak konsisten dengan hasil desain
-   (5.076,5 m²) — ditandai otomatis di sheet Desain_Kolam.
-3. Asumsi lapangan (Lo = 8 m, S_atap = 30%, S_pipa = 0,30%, he = 3 m) wajib
-   diverifikasi survei/waterpass (Tahap 4).
-4. Sumber data hujan: pipeline baru memakai BWSK 2012–2025; draft lama memakai
-   Supadio 2000–2024 — keputusan narasi diputuskan di Tahap 4–5 (perbedaan angka
-   lama vs baru tercatat lengkap di `HANDOFF.md`).
+1. ~~Evaporasi masih asumsi 120 mm/bulan~~ **SELESAI** — evaporasi Penman muka air
+   142,6–166,2 mm/bulan (NOAA ISD Supadio + NASA POWER; rantai hitung live di workbook).
+2. ~~`parameter_desain.Ap_kolam` (1.200 m²) tidak konsisten~~ **SELESAI** — parameter
+   dihapus; Ap = 5.256,25 m² dari iterasi Vs↔Ap titik tetap.
+3. **Asumsi lapangan WAJIB diverifikasi survei/waterpass**: Lo = 8 m, S_atap = 30%,
+   S_pipa = 0,30%, he = 3 m (parameter_desain).
+4. **Rekonsiliasi lahan kolam (Tahap 6, menunggu keputusan user)**: Ap rencana
+   5.256,25 m² vs lahan FASOS 814 m² — analisis opsi disiapkan di handoff.
+5. Data hilang 12 hari NULL (SNI 2415:2016 §4.2.3) — keputusan M2 ditangguhkan
+   sampai asistensi dosen.
+6. CSV NOAA ISD 2025 hanya sampai 24 Agu 2025 (arsip NOAA) — bila arsip lengkap,
+   jalankan ulang `src/evaporasi_penman.py` (dampak kecil pada klimatologi).
